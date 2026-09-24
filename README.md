@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SDD Navigator Dashboard
 
-## Getting Started
+A Next.js dashboard for **specification-driven development**: it shows which requirements of a project are implemented, tested, or still unaddressed, using the [SDD Navigator API](https://api.pdd.foreachpartners.com).
 
-First, run the development server:
+- **Summary** — coverage percentage, requirement counts by type and status, orphan counts, last scan time.
+- **Requirements** — searchable, filterable (type / status chips) and sortable table; filters live in the URL so views can be shared.
+- **Requirement detail** — description, coverage assessment, linked `@req` annotations with code snippets, linked tasks.
+- **Tasks and orphans** — all work items with orphan highlighting, plus a panel of references to unknown requirements.
+- **Light and dark themes** — follows the OS on first visit; the toggle's choice is stored in `localStorage`.
+
+## Data modes
+
+| Mode | When | Data |
+|---|---|---|
+| **Mock mode** | `NEXT_PUBLIC_API_URL` unset or empty (default for development) | `data/*.json`, shaped exactly like the API responses |
+| **API mode** | `NEXT_PUBLIC_API_URL` set, e.g. `https://api.pdd.foreachpartners.com` | the live SDD Navigator API |
+
+The header shows which mode is active. `NEXT_PUBLIC_API_URL` is read at build time, so rebuild after changing it.
+
+## Getting started
+
+Requires Node.js ≥ 22.18 (Node 24 recommended) and pnpm.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev                                                   # mock mode on http://localhost:3000
+NEXT_PUBLIC_API_URL=https://api.pdd.foreachpartners.com pnpm dev   # API mode
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Production build:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm build && pnpm start
+NEXT_PUBLIC_API_URL=https://api.pdd.foreachpartners.com pnpm build && pnpm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Script | What it does |
+|---|---|
+| `pnpm dev` / `pnpm build` / `pnpm start` | Next.js development server, production build, production server |
+| `pnpm test` | Unit, component and accessibility tests (Vitest) |
+| `pnpm test:contract` | Checks the live API against the schemas (network required) |
+| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm lint` | ESLint |
+| `pnpm check:coverage` | Self-validation: compares `requirements.yaml` with the `@req` annotations in the code and exits with code 1 if any requirement is unimplemented |
+| `pnpm validate` | Everything above that CI runs: typecheck, lint, tests, build, coverage check |
 
-To learn more about Next.js, take a look at the following resources:
+## Specification-driven workflow
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`requirements.yaml` is the single source of truth. Code that implements or tests a requirement carries a comment such as `// @req SCD-UI-003`; files named `*.test.*` count as tests. `pnpm check:coverage` prints a report (covered / partial / missing, plus orphan annotations) and fails when any requirement has no implementation. Pass `--tasks <file.json>` to also report orphan tasks.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Git hooks (Husky): pre-commit runs tests and the build; pre-push adds the type check and lint. Commit messages follow Conventional Commits (commitlint).
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The app deploys on **Vercel** through the GitHub integration:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- every pull request gets a **Preview** deployment;
+- `main` deploys to **Production**.
+
+Set `NEXT_PUBLIC_API_URL` per Vercel environment (Project → Settings → Environment Variables). Leave it unset in Preview to review UI changes against mock data.
+
+CI (`.github/workflows/ci.yml`) runs `pnpm validate` on every pull request and push to `main`.
