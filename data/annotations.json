@@ -1,0 +1,114 @@
+[
+  {
+    "file": "src/api/legacy.rs",
+    "line": 5,
+    "reqId": "FR-LEGACY-001",
+    "type": "impl",
+    "snippet": "/// @req FR-LEGACY-001\nfn deprecated_handler() {"
+  },
+  {
+    "file": "src/api/requirements.rs",
+    "line": 10,
+    "reqId": "FR-API-001",
+    "type": "impl",
+    "snippet": "/// @req FR-API-001\nasync fn list_requirements(query: Query<ReqFilter>) -> Json<Vec<Requirement>> {"
+  },
+  {
+    "file": "src/api/requirements.rs",
+    "line": 45,
+    "reqId": "FR-API-002",
+    "type": "impl",
+    "snippet": "/// @req FR-API-002\nasync fn get_requirement(path: Path<String>) -> Json<RequirementDetail> {"
+  },
+  {
+    "file": "src/api/search.rs",
+    "line": 5,
+    "reqId": "FR-API-003",
+    "type": "impl",
+    "snippet": "/// @req FR-API-003\nasync fn search_requirements(query: Query<SearchParams>) -> Json<Vec<Requirement>> {"
+  },
+  {
+    "file": "src/api/stats.rs",
+    "line": 8,
+    "reqId": "FR-API-001",
+    "type": "impl",
+    "snippet": "/// @req FR-API-001\nasync fn get_stats() -> Json<Stats> {"
+  },
+  {
+    "file": "src/parser.rs",
+    "line": 15,
+    "reqId": "FR-SCAN-001",
+    "type": "impl",
+    "snippet": "/// @req FR-SCAN-001\nfn parse_requirements(path: &Path) -> Result<Vec<Requirement>> {"
+  },
+  {
+    "file": "src/parser.rs",
+    "line": 58,
+    "reqId": "FR-SCAN-001",
+    "type": "impl",
+    "snippet": "/// @req FR-SCAN-001\nfn validate_yaml_schema(doc: &Value) -> Result<()> {"
+  },
+  {
+    "file": "src/scanner.rs",
+    "line": 22,
+    "reqId": "FR-SCAN-002",
+    "type": "impl",
+    "snippet": "/// @req FR-SCAN-002\nfn scan_file(path: &Path) -> Vec<Annotation> {"
+  },
+  {
+    "file": "src/scanner.rs",
+    "line": 67,
+    "reqId": "FR-SCAN-002",
+    "type": "impl",
+    "snippet": "/// @req FR-SCAN-002\nfn classify_annotation(file: &Path) -> AnnotationType {"
+  },
+  {
+    "file": "src/scanner.rs",
+    "line": 89,
+    "reqId": "FR-SCAN-003",
+    "type": "impl",
+    "snippet": "/// @req FR-SCAN-003\nfn detect_orphans(annotations: &[Annotation], reqs: &[Requirement]) -> Vec<Annotation> {"
+  },
+  {
+    "file": "tests/api_test.rs",
+    "line": 20,
+    "reqId": "FR-API-001",
+    "type": "test",
+    "snippet": "/// @req FR-API-001\n#[tokio::test] async fn test_list_with_status_filter() {"
+  },
+  {
+    "file": "tests/api_test.rs",
+    "line": 55,
+    "reqId": "FR-API-002",
+    "type": "test",
+    "snippet": "/// @req FR-API-002\n#[tokio::test] async fn test_get_requirement_detail() {"
+  },
+  {
+    "file": "tests/api_test.rs",
+    "line": 88,
+    "reqId": "FR-API-099",
+    "type": "test",
+    "snippet": "/// @req FR-API-099\n#[tokio::test] async fn test_removed_endpoint() {"
+  },
+  {
+    "file": "tests/parser_test.rs",
+    "line": 12,
+    "reqId": "FR-SCAN-001",
+    "type": "test",
+    "snippet": "/// @req FR-SCAN-001\n#[test] fn test_parse_valid_yaml() {"
+  },
+  {
+    "file": "tests/scanner_test.rs",
+    "line": 8,
+    "reqId": "FR-SCAN-002",
+    "type": "test",
+    "snippet": "/// @req FR-SCAN-002\n#[test] fn test_scan_rust_file() {"
+  },
+  {
+    "file": "tests/scanner_test.rs",
+    "line": 34,
+    "reqId": "FR-SCAN-003",
+    "type": "test",
+    "snippet": "/// @req FR-SCAN-003\n#[test] fn test_detect_orphan_annotations() {"
+  }
+]
