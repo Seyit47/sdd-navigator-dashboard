@@ -10,12 +10,14 @@ export interface StatusPresentation {
   icon: string;
   /** Theme token for marks (dots, bars); never used for text. */
   color: string;
+  /** Soft background token for pills and highlighted rows; text on it is --ink. */
+  tint: string;
 }
 
 export const STATUS_PRESENTATION: Record<CoverageStatus, StatusPresentation> = {
-  covered: { label: "Covered", assessment: "Fully covered", icon: "✓", color: "var(--good)" },
-  partial: { label: "Partial", assessment: "Needs tests", icon: "◐", color: "var(--warning)" },
-  missing: { label: "Missing", assessment: "Not implemented", icon: "✕", color: "var(--critical)" },
+  covered: { label: "Covered", assessment: "Fully covered", icon: "✓", color: "var(--good)", tint: "var(--good-tint)" },
+  partial: { label: "Partial", assessment: "Needs tests", icon: "◐", color: "var(--warning)", tint: "var(--warning-tint)" },
+  missing: { label: "Missing", assessment: "Not implemented", icon: "✕", color: "var(--critical)", tint: "var(--critical-tint)" },
 };
 
 /** count / total as a percentage with one decimal; 0 when total is 0. */
