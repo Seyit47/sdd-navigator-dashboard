@@ -2,6 +2,8 @@
 
 A Next.js dashboard for **specification-driven development**: it shows which requirements of a project are implemented, tested, or still unaddressed, using the [SDD Navigator API](https://api.pdd.foreachpartners.com).
 
+**Live demo:** https://sdd-navigator-dashboard-theta.vercel.app · **Source:** https://github.com/Seyit47/sdd-navigator-dashboard
+
 - **Summary** — coverage percentage, requirement counts by type and status, orphan counts, last scan time.
 - **Requirements** — searchable, filterable (type / status chips) and sortable table; filters live in the URL so views can be shared.
 - **Requirement detail** — description, coverage assessment, linked `@req` annotations with code snippets, linked tasks.
@@ -41,7 +43,7 @@ NEXT_PUBLIC_API_URL=https://api.pdd.foreachpartners.com pnpm build && pnpm start
 | `pnpm dev` / `pnpm build` / `pnpm start` | Next.js development server, production build, production server |
 | `pnpm test` | Unit, component and accessibility tests (Vitest) |
 | `pnpm test:contract` | Checks the live API against the schemas (network required) |
-| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm typecheck` | `next typegen && tsc --noEmit` (generates Next.js route types, then type-checks) |
 | `pnpm lint` | ESLint |
 | `pnpm check:coverage` | Self-validation: compares `requirements.yaml` with the `@req` annotations in the code and exits with code 1 if any requirement is unimplemented |
 | `pnpm validate` | Everything above that CI runs: typecheck, lint, tests, build, coverage check |

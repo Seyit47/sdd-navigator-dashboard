@@ -1,5 +1,6 @@
 // @req SCD-VAL-002, SCD-DEP-001, SCD-DEP-002
 import { readFileSync } from "node:fs";
+import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 
 const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
@@ -35,6 +36,24 @@ describe("deterministic checks", () => {
 
   it("requires a Node version that runs TypeScript natively", () => {
     expect(pkg.engines?.node).toBe(">=22.18");
+  });
+});
+
+describe("deliverables", () => {
+  it("every requirements.yaml entry has a non-empty description", () => {
+    const entries = parse(readFileSync("requirements.yaml", "utf8")) as Array<{ id: string; description?: unknown }>;
+    const missing = entries.filter((e) => typeof e.description !== "string" || e.description.trim() === "").map((e) => e.id);
+    expect(missing).toEqual([]);
+  });
+
+  it("the README links the live deployment and the repository", () => {
+    const readme = readFileSync("README.md", "utf8");
+    expect(readme).toContain("https://sdd-navigator-dashboard-theta.vercel.app");
+    expect(readme).toContain("https://github.com/Seyit47/sdd-navigator-dashboard");
+  });
+
+  it("the README describes the typecheck script as it is defined", () => {
+    expect(readFileSync("README.md", "utf8")).toContain(pkg.scripts.typecheck);
   });
 });
 
