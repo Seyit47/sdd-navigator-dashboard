@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 // @req SCD-UI-003, SCD-FLT-001, SCD-FLT-002, SCD-SORT-001, SCD-STATE-003, SCD-A11Y-002
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Requirement } from "@/lib/api";
 import { axeViolations } from "@/test/axe";
 import { loadFixtures } from "@/test/fixtures";
-import { lastHref, resetNavigation, setSearch } from "@/test/navigation";
+import { lastHref, replace, resetNavigation, setSearch } from "@/test/navigation";
 import { RequirementsTable } from "./RequirementsTable";
 
 vi.mock("next/navigation", async () => (await import("@/test/navigation")).navigationMock);
@@ -54,6 +54,22 @@ describe("RequirementsTable", () => {
     expect(lastHref()).toBe("/?type=FR");
     expect(rowIds()).toHaveLength(6);
     expect(chip("Filter by type", "FR")).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("changes the URL in place, without a server navigation", async () => {
+    renderTable();
+    await userEvent.click(chip("Filter by type", "FR"));
+    expect(replace).not.toHaveBeenCalled();
+    expect(lastHref()).toBe("/?type=FR");
+  });
+
+  it("keeps the search box in step with the URL when it changes from outside", () => {
+    renderTable("?q=scan");
+    const searchbox = screen.getByRole("searchbox", { name: "Search" });
+    expect(searchbox).toHaveValue("scan");
+    act(() => setSearch(""));
+    expect(searchbox).toHaveValue("");
+    expect(rowIds()).toHaveLength(8);
   });
 
   it("combines chips: OR within a group, AND across groups", async () => {
