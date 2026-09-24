@@ -1,5 +1,6 @@
 // @req SCD-VAL-001
 import { parse as parseYaml } from "yaml";
+import { REQUIREMENT_ID } from "./ids.ts";
 import type { Parsed, RequirementEntry, TaskEntry } from "./types.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -25,6 +26,12 @@ export function parseRequirements(text: string): Parsed<RequirementEntry[]> {
   for (const [index, item] of doc.entries()) {
     if (!isRecord(item) || typeof item.id !== "string" || item.id.trim() === "" || typeof item.title !== "string") {
       return { ok: false, error: `entry ${index + 1} must have string "id" and "title"` };
+    }
+    if (!REQUIREMENT_ID.test(item.id)) {
+      return {
+        ok: false,
+        error: `entry ${index + 1} has an invalid id "${item.id}" (expected TYPE-AREA-NNN, e.g. SCD-UI-001)`,
+      };
     }
     if (seen.has(item.id)) return { ok: false, error: `duplicate requirement id ${item.id}` };
     seen.add(item.id);

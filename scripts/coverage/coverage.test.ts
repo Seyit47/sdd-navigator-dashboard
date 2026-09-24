@@ -63,6 +63,13 @@ describe("parseRequirements", () => {
     });
   });
 
+  it("rejects ids that do not follow TYPE-AREA-NNN", () => {
+    expect(parseRequirements("- id: SCD-UI-01\n  title: Short\n")).toEqual({
+      ok: false,
+      error: 'entry 1 has an invalid id "SCD-UI-01" (expected TYPE-AREA-NNN, e.g. SCD-UI-001)',
+    });
+  });
+
   it("rejects duplicate ids", () => {
     expect(parseRequirements("- id: FR-A-001\n  title: One\n- id: FR-A-001\n  title: Two\n")).toEqual({
       ok: false,
@@ -136,6 +143,15 @@ describe("extractAnnotations", () => {
 
   it("ignores a trailing comma", () => {
     expect(extractAnnotations("src/a.ts", `// ${TAG} FR-A-001,`).map((a) => a.reqId)).toEqual(["FR-A-001"]);
+  });
+
+  it("requires an exact id: longer or suffixed ids are not truncated", () => {
+    const text = [`// ${TAG} FR-A-0010`, `// ${TAG} FR-A-001a`, `// ${TAG} FR-A-001-x`].join("\n");
+    expect(extractAnnotations("src/a.ts", text)).toEqual([]);
+  });
+
+  it("requires the tag to start a word", () => {
+    expect(extractAnnotations("src/a.ts", `foo${TAG} FR-A-001`)).toEqual([]);
   });
 
   it("ignores text that is not an annotation", () => {
