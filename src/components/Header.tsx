@@ -5,12 +5,12 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   return (
-    <header className="border-b border-hairline bg-surface">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-        <h1 className="text-lg font-semibold">
+    <header className="sticky top-0 z-10 border-b border-hairline bg-plane/80 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
+        <h1 className="text-base font-semibold tracking-tight">
           <Link href="/">SDD Navigator</Link>
         </h1>
-        <span className="rounded-full border border-hairline px-2 py-0.5 text-xs text-ink-2">
+        <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-ink-2">
           {dataMode === "api" ? "Live API" : "Mock data"}
         </span>
         <div className="ml-auto">

@@ -6,7 +6,7 @@ import type { ApiError } from "@/lib/api";
 export function ErrorPanel({ title, error }: { title: string; error: ApiError }) {
   const router = useRouter();
   return (
-    <div role="alert" className="rounded-lg border border-critical bg-surface p-4">
+    <div role="alert" className="rounded-xl border-l-4 border-critical bg-surface p-5 shadow-card">
       <p className="font-semibold">
         <span aria-hidden="true">✕ </span>
         {title}
@@ -25,7 +25,7 @@ export function ErrorPanel({ title, error }: { title: string; error: ApiError })
       <button
         type="button"
         onClick={() => router.refresh()}
-        className="mt-3 rounded-md border border-hairline px-3 py-1 text-sm text-ink hover:bg-plane"
+        className="mt-3 rounded-lg bg-surface-2 px-3 py-1.5 text-sm font-medium text-ink hover:text-ink-2"
       >
         Retry
       </button>

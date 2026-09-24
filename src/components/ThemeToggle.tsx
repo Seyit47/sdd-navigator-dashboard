@@ -14,7 +14,7 @@ export function ThemeToggle() {
       type="button"
       onClick={() => setTheme(next)}
       aria-label={theme === null ? "Toggle colour theme" : `Switch to ${next} theme`}
-      className="rounded-md border border-hairline bg-surface px-3 py-1.5 text-sm text-ink hover:bg-plane"
+      className="rounded-lg p-2 text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink"
     >
       <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
     </button>
