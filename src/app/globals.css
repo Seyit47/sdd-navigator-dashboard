@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
+/* @req SCD-THEME-002, SCD-A11Y-001
+   Every colour is a token here; components use the Tailwind utilities mapped in @theme.
+   Text tokens (ink, ink-2, muted, link) are >= 4.5:1 on surface and plane in both themes
+   (checked by src/app/theme-contrast.test.ts). Status colours are fixed across themes and
+   are only used for marks, never for text. */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --plane: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #6b6a66;
+  --link: #1c5cab;
+  --hairline: rgba(11, 11, 11, 0.1);
+  --grid: #e1e0d9;
+  --accent: #2a78d6;
+  --accent-track: #cde2fb;
+  --chip: #cde2fb;
+  --focus: #2a78d6;
+  --code-bg: #f0efec;
+  --orphan-tint: rgba(208, 59, 59, 0.08);
+  --good: #0ca30c;
+  --warning: #fab219;
+  --critical: #d03b3b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --plane: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --link: #86b6ef;
+    --hairline: rgba(255, 255, 255, 0.1);
+    --grid: #2c2c2a;
+    --accent: #3987e5;
+    --accent-track: #184f95;
+    --chip: #184f95;
+    --focus: #3987e5;
+    --code-bg: #262624;
+    --orphan-tint: rgba(208, 59, 59, 0.16);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --plane: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --link: #86b6ef;
+  --hairline: rgba(255, 255, 255, 0.1);
+  --grid: #2c2c2a;
+  --accent: #3987e5;
+  --accent-track: #184f95;
+  --chip: #184f95;
+  --focus: #3987e5;
+  --code-bg: #262624;
+  --orphan-tint: rgba(208, 59, 59, 0.16);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-plane: var(--plane);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-link: var(--link);
+  --color-hairline: var(--hairline);
+  --color-grid: var(--grid);
+  --color-accent: var(--accent);
+  --color-accent-track: var(--accent-track);
+  --color-chip: var(--chip);
+  --color-focus: var(--focus);
+  --color-code-bg: var(--code-bg);
+  --color-orphan-tint: var(--orphan-tint);
+  --color-good: var(--good);
+  --color-warning: var(--warning);
+  --color-critical: var(--critical);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--plane);
+  color: var(--ink);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
