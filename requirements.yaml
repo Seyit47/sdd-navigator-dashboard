@@ -1,0 +1,178 @@
+# SDD Navigator Dashboard — requirements (single source of truth)
+#
+# ID format: SCD-{AREA}-{NNN}
+# type: FR = functional, AR = architectural / non-functional
+# Code implementing or testing a requirement is annotated with `@req <ID>`.
+# API contract: https://api.pdd.foreachpartners.com/spec/sdd-coverage-api.yaml (v3.0.0)
+
+# --- API integration ---------------------------------------------------------
+
+- id: SCD-API-001
+  type: FR
+  title: Select data source by environment
+  description: >-
+    App MUST run in API mode, fetching from the base URL in NEXT_PUBLIC_API_URL,
+    when that variable is set and non-empty, and MUST run in mock mode, loading
+    local JSON fixtures, when it is unset or empty. The active mode MUST be
+    visible in the UI.
+
+- id: SCD-API-002
+  type: FR
+  title: Mock fixtures conform to the API schema
+  description: >-
+    Mock mode MUST serve fixtures for GET /stats, /requirements,
+    /requirements/{id}, /annotations, /tasks and /scan that validate against the
+    corresponding OpenAPI v3.0.0 response schemas, and an automated test MUST
+    fail if any fixture does not validate.
+
+- id: SCD-API-003
+  type: AR
+  title: Single typed data-access layer
+  description: >-
+    All data access MUST go through one client module whose request and response
+    types match the OpenAPI schemas; UI components MUST NOT call fetch directly,
+    and switching between API and mock mode MUST NOT require changes to any UI
+    component.
+
+# --- Data display ------------------------------------------------------------
+
+- id: SCD-UI-001
+  type: FR
+  title: Load project stats from /stats endpoint
+  description: >-
+    Dashboard MUST fetch RequirementStats, AnnotationStats, and TaskStats from
+    GET /stats on initial load and display them in the summary panel, together
+    with the overall coverage percentage and lastScanAt timestamp.
+
+- id: SCD-UI-002
+  type: FR
+  title: Show coverage breakdown by status
+  description: >-
+    Dashboard MUST display the count and share of requirements per coverage
+    status, labelled covered (implemented and tested), partial (implemented,
+    not tested) and missing (unaddressed).
+
+- id: SCD-UI-003
+  type: FR
+  title: List requirements in a table
+  description: >-
+    Dashboard MUST list all requirements from GET /requirements showing id,
+    type, title, coverage status and updatedAt for each row.
+
+- id: SCD-UI-004
+  type: FR
+  title: Requirement detail with traceability chain
+  description: >-
+    Selecting a requirement MUST open a detail view, addressable by URL, loaded
+    from GET /requirements/{id} that shows its description, every linked
+    annotation (file, line, impl/test type, code snippet) and every linked task
+    (id, title, status, assignee).
+
+# --- Filtering ---------------------------------------------------------------
+
+- id: SCD-FLT-001
+  type: FR
+  title: Filter requirements by type and status
+  description: >-
+    Requirements list MUST support filtering by type (FR, AR) and coverage status
+    (covered, partial, missing), combinable, with active filters reflected in the
+    URL query string so a filtered view survives reload and can be shared.
+
+- id: SCD-FLT-002
+  type: FR
+  title: Search requirements by id or title
+  description: >-
+    Requirements list SHOULD provide a text search that keeps only requirements
+    whose id or title contains the query, case-insensitively.
+
+# --- Sorting -----------------------------------------------------------------
+
+- id: SCD-SORT-001
+  type: FR
+  title: Sort requirements by id or updatedAt
+  description: >-
+    Requirements list MUST support sorting by id or updatedAt in ascending or
+    descending order, defaulting to id ascending as the API does, with the sort
+    reflected in the URL query string.
+
+# --- Error / loading states --------------------------------------------------
+
+- id: SCD-STATE-001
+  type: FR
+  title: Loading states
+  description: >-
+    Every view MUST show a loading indicator while its data is being fetched and
+    MUST NOT render stale or partial data as if it were complete.
+
+- id: SCD-STATE-002
+  type: FR
+  title: Error states with retry
+  description: >-
+    When a request fails (network error or non-2xx response) the affected view
+    MUST show an error message, including the API Error.message when present,
+    and a retry action; a 404 from GET /requirements/{id} MUST show a
+    "requirement not found" state instead of a generic error.
+
+- id: SCD-STATE-003
+  type: FR
+  title: Empty states
+  description: >-
+    When a list has no items, including when filters or search match nothing,
+    the view MUST show an explicit empty-state message instead of an empty
+    table.
+
+# --- Accessibility -----------------------------------------------------------
+
+- id: SCD-A11Y-001
+  type: AR
+  title: WCAG 2.1 AA compliance
+  description: >-
+    All views MUST meet WCAG 2.1 level AA in both themes: every interactive
+    element reachable and operable by keyboard with a visible focus indicator,
+    text contrast of at least 4.5:1, and coverage status never conveyed by
+    color alone.
+
+- id: SCD-A11Y-002
+  type: AR
+  title: Semantic markup and automated a11y checks
+  description: >-
+    The requirements list MUST be a semantic table with column headers, all form
+    controls MUST have accessible labels, and an automated axe check of each
+    view MUST report zero violations.
+
+# --- Theming -----------------------------------------------------------------
+
+- id: SCD-THEME-001
+  type: FR
+  title: Light and dark themes
+  description: >-
+    App MUST support light and dark themes, follow the OS prefers-color-scheme
+    setting by default, and provide a toggle whose choice persists across page
+    reloads.
+
+- id: SCD-THEME-002
+  type: AR
+  title: Colors defined as theme tokens
+  description: >-
+    All colors, including coverage status colors, MUST be defined as named theme
+    tokens (CSS custom properties) with values for both themes; components MUST
+    NOT hard-code color values.
+
+# --- Deployment --------------------------------------------------------------
+
+- id: SCD-DEP-001
+  type: AR
+  title: Production build gated by hooks
+  description: >-
+    `pnpm build` MUST complete without type or lint errors, and the pre-commit
+    and pre-push git hooks MUST block the commit or push when it fails.
+
+- id: SCD-DEP-002
+  type: AR
+  title: Deploy to Vercel
+  description: >-
+    The app MUST deploy on Vercel with every pull request getting a Preview
+    deployment and the main branch deploying to Production, with
+    NEXT_PUBLIC_API_URL configured per Vercel environment; the README MUST
+    document the environment variables and the local build and run commands
+    for both data modes.
