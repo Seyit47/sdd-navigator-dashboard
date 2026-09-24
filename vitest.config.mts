@@ -12,6 +12,6 @@ export default defineConfig({
     environment: "node",
     // Unit tests assume mock mode even if the developer's shell exports an API URL.
     env: { NEXT_PUBLIC_API_URL: "" },
-    include: contract ? ["src/**/*.contract.ts"] : ["src/**/*.test.ts"],
+    include: contract ? ["src/**/*.contract.ts"] : ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts"],
   },
 });
