@@ -7,4 +7,5 @@
 - Commit messages MUST follow [Conventional Commits](https://www.conventionalcommits.org/): `<type>(<optional scope>): <description>`, e.g. `feat(requirements): add status filter`.
   - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
   - Description in imperative mood, lowercase, no trailing period; mark breaking changes with `!` after the type/scope and a `BREAKING CHANGE:` footer.
+  - Enforced by the `.husky/commit-msg` hook (commitlint, `@commitlint/config-conventional`).
 - Husky hooks (`.husky/pre-commit`, `.husky/pre-push`) run `pnpm build`; a failing build blocks the commit/push. Fix the build instead of bypassing with `--no-verify`.
