@@ -115,6 +115,10 @@ export function createApiClient(transport: Transport): ApiClient {
 
     getRequirement: async (id) => {
       if (id.trim() === "") return err({ kind: "not_found", message: "Requirement id is empty" });
+      // encodeURIComponent keeps dots, and URL parsing resolves "." / ".." as path segments.
+      if (id === "." || id === "..") {
+        return err({ kind: "not_found", message: `Requirement '${id}' not found` });
+      }
       return request(
         transport,
         { method: "GET", path: `/requirements/${encodeURIComponent(id)}` },

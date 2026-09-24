@@ -142,7 +142,7 @@ describe("error mapping", () => {
     expect(errorOf(await api.getStats()).kind).toBe("invalid_response");
   });
 
-  it.each(["", "   "])("returns not_found for blank id %j without a request", async (id) => {
+  it.each(["", "   ", ".", ".."])("returns not_found for blank or dot-segment id %j without a request", async (id) => {
     const { api, calls } = stubTransport({ status: 200, body: [] });
     expect(errorOf(await api.getRequirement(id)).kind).toBe("not_found");
     expect(calls).toHaveLength(0);
