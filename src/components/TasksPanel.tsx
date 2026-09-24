@@ -44,7 +44,7 @@ export function TasksPanel({ tasks, orphanTaskIds }: { tasks: Task[]; orphanTask
           </button>
         </div>
       ) : (
-        <div className="mt-2 overflow-x-auto">
+        <div className="relative mt-2 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Tasks</caption>
             <thead className="text-ink-2">

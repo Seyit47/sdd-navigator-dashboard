@@ -51,7 +51,7 @@ function OrphanTable({
       {rows.length === 0 ? (
         <p className="mt-1 text-sm text-ink-2">None.</p>
       ) : (
-        <div className="mt-1 overflow-x-auto">
+        <div className="relative mt-1 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">{title}</caption>
             <thead className="text-ink-2">

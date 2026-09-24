@@ -9,7 +9,7 @@ export function StatusBars({ byStatus, total }: { byStatus: Record<string, numbe
   return (
     <figure className="mt-3 rounded-lg border border-hairline bg-surface p-4">
       <figcaption className="text-xs text-ink-2">Requirements by coverage status</figcaption>
-      <ul className="mt-3 grid gap-2">
+      <ul className="mt-3 grid grid-cols-1 gap-2">
         {rows.map(({ status, count }) => {
           const p = STATUS_PRESENTATION[status];
           const summary = `${p.label}: ${count} of ${total} (${formatPercent(share(count, total))})`;
@@ -18,7 +18,7 @@ export function StatusBars({ byStatus, total }: { byStatus: Record<string, numbe
               key={status}
               data-status={status}
               title={summary}
-              className="grid grid-cols-[7rem_1fr_2.5rem] items-center gap-3 text-sm"
+              className="grid grid-cols-[7rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-sm"
             >
               <span aria-hidden="true">
                 {p.icon} {p.label}

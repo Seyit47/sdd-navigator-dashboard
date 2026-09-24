@@ -56,11 +56,15 @@ describe("requirement page", () => {
 
 // jsdom has no layout engine; these structural rules are what keep the views within a
 // 360px phone viewport (verified in Chrome): grid tracks may shrink below their content's
-// width, and wide tables scroll inside their own box instead of widening the page.
+// width, and wide tables scroll inside their own positioned box instead of widening the page.
 function expectPhoneSafeLayout(container: HTMLElement) {
   const tables = Array.from(container.querySelectorAll("table"));
   expect(tables.length).toBeGreaterThan(0);
-  for (const table of tables) expect(table.closest(".overflow-x-auto")).not.toBeNull();
+  // The scroll box must be positioned, or absolutely positioned descendants (sr-only text)
+  // escape it and widen the page.
+  for (const table of tables) expect(table.closest(".overflow-x-auto")).toHaveClass("relative");
+  // Every grid declares its tracks; implicit auto tracks grow to fit wide content.
+  for (const grid of container.querySelectorAll(".grid")) expect(grid.className).toMatch(/\bgrid-cols-/);
   expect(container.firstElementChild).toHaveClass("grid-cols-[minmax(0,1fr)]");
 }
 

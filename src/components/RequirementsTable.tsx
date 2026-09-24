@@ -93,7 +93,7 @@ export function RequirementsTable({ requirements }: { requirements: Requirement[
           </button>
         </div>
       ) : (
-        <div className="mt-2 overflow-x-auto">
+        <div className="relative mt-2 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Requirements</caption>
             <thead className="text-ink-2">
