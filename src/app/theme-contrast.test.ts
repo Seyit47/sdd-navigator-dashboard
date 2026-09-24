@@ -19,20 +19,20 @@ const darkMedia = tokens(/:root:not\(\[data-theme="light"\]\)\s*\{([^}]*)\}/);
 const darkToggle = tokens(/:root\[data-theme="dark"\]\s*\{([^}]*)\}/);
 
 const TEXT = ["ink", "ink-2", "muted", "link"];
-const BACKGROUNDS = ["surface", "plane"];
-const pairs = TEXT.flatMap((text) => BACKGROUNDS.map((background) => [text, background] as const));
+const BACKGROUNDS = ["surface", "plane", "surface-2"];
+const TINTS = ["good-tint", "warning-tint", "critical-tint"];
+const textPairs = TEXT.flatMap((text) => BACKGROUNDS.map((background) => [text, background] as const));
 
 describe.each([
   ["light", light],
   ["dark", darkToggle],
 ])("%s theme", (_theme, t) => {
-  it.each(pairs)("--%s on --%s is at least 4.5:1", (text, background) => {
+  it.each(textPairs)("--%s on --%s is at least 4.5:1", (text, background) => {
     expect(contrastRatio(t[text], t[background])).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("--ink on --chip and --code-bg is at least 4.5:1", () => {
-    expect(contrastRatio(t.ink, t.chip)).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio(t.ink, t["code-bg"])).toBeGreaterThanOrEqual(4.5);
+  it.each(TINTS)("--ink on --%s is at least 4.5:1", (tint) => {
+    expect(contrastRatio(t.ink, t[tint])).toBeGreaterThanOrEqual(4.5);
   });
 });
 

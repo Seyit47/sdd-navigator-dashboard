@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full bg-plane font-sans text-ink">
         <Header />
-        <main className="mx-auto w-full max-w-6xl px-4 py-6">{children}</main>
+        <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">{children}</main>
       </body>
     </html>
   );
