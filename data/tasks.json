@@ -1,0 +1,53 @@
+[
+  {
+    "id": "TASK-001",
+    "requirementId": "FR-SCAN-001",
+    "title": "Implement YAML parser",
+    "status": "done",
+    "assignee": "alexey",
+    "createdAt": "2026-02-10T09:00:00Z",
+    "updatedAt": "2026-02-20T18:00:00Z"
+  },
+  {
+    "id": "TASK-002",
+    "requirementId": "FR-SCAN-002",
+    "title": "Build annotation scanner",
+    "status": "done",
+    "assignee": "alexey",
+    "createdAt": "2026-02-12T10:00:00Z",
+    "updatedAt": "2026-02-25T15:00:00Z"
+  },
+  {
+    "id": "TASK-003",
+    "requirementId": "FR-API-001",
+    "title": "Add filtering to requirements endpoint",
+    "status": "in_progress",
+    "assignee": "maria",
+    "createdAt": "2026-02-18T09:00:00Z",
+    "updatedAt": "2026-03-01T10:15:00Z"
+  },
+  {
+    "id": "TASK-004",
+    "requirementId": "FR-API-002",
+    "title": "Write tests for requirement detail",
+    "status": "open",
+    "createdAt": "2026-02-20T11:00:00Z",
+    "updatedAt": "2026-02-20T11:00:00Z"
+  },
+  {
+    "id": "TASK-005",
+    "requirementId": "AR-PERF-001",
+    "title": "Benchmark scan on large repos",
+    "status": "open",
+    "createdAt": "2026-02-22T14:00:00Z",
+    "updatedAt": "2026-02-22T14:00:00Z"
+  },
+  {
+    "id": "TASK-006",
+    "requirementId": "FR-EXPORT-001",
+    "title": "Add CSV export",
+    "status": "open",
+    "createdAt": "2026-02-25T10:00:00Z",
+    "updatedAt": "2026-02-25T10:00:00Z"
+  }
+]
