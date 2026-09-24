@@ -1,11 +1,13 @@
 // @req SCD-FLT-001
-// Test double for next/navigation: an in-memory URL whose changes re-render subscribers,
-// so components can be exercised end to end without the Next.js router.
+// Test double for next/navigation (jsdom only). It models the real behaviour the dashboard
+// relies on: useSearchParams follows window.history.replaceState immediately, while
+// router.replace is a server navigation whose URL change would only land after a server
+// render — so here it deliberately does not change the URL at all.
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 
-let search = "";
 const listeners = new Set<() => void>();
+const realReplaceState = window.history.replaceState.bind(window.history);
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
@@ -18,33 +20,39 @@ function notify(): void {
   for (const listener of listeners) listener();
 }
 
+export const historyReplace = vi.fn((...args: Parameters<History["replaceState"]>) => {
+  realReplaceState(...args);
+  notify();
+});
+window.history.replaceState = historyReplace;
+
+/** Simulates a URL change from outside the component (link click, back button, shared link). */
 export function setSearch(next: string): void {
-  search = next === "" || next.startsWith("?") ? next : `?${next}`;
+  realReplaceState(null, "", `/${next === "" || next.startsWith("?") ? next : `?${next}`}`);
   notify();
 }
 
-export const replace = vi.fn((...args: [href: string, options?: { scroll?: boolean }]) => {
-  const href = args[0];
-  const index = href.indexOf("?");
-  search = index === -1 ? "" : href.slice(index);
-  notify();
-});
+export const replace = vi.fn();
 export const refresh = vi.fn();
 export const push = vi.fn();
 
+/** The last URL the component wrote with history.replaceState. */
 export function lastHref(): string | undefined {
-  return replace.mock.lastCall?.[0];
+  const url = historyReplace.mock.lastCall?.[2];
+  return url === undefined || url === null ? undefined : String(url);
 }
 
 export function resetNavigation(): void {
-  search = "";
+  realReplaceState(null, "", "/");
+  historyReplace.mockClear();
   replace.mockClear();
   refresh.mockClear();
   push.mockClear();
 }
 
 export const navigationMock = {
-  useSearchParams: () => new URLSearchParams(useSyncExternalStore(subscribe, () => search, () => search)),
+  useSearchParams: () =>
+    new URLSearchParams(useSyncExternalStore(subscribe, () => window.location.search, () => "")),
   useRouter: () => ({ replace, refresh, push, back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => "/",
   notFound: (): never => {

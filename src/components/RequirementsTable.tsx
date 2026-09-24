@@ -19,6 +19,12 @@ export function RequirementsTable({ requirements }: { requirements: Requirement[
   const { query, update } = useDashboardQuery();
   // Local state keeps typing responsive; every keystroke is also written to the URL.
   const [search, setSearch] = useState(query.q);
+  // When q changes from outside (a link, the back button), adopt the URL's value.
+  const [syncedQ, setSyncedQ] = useState(query.q);
+  if (query.q !== syncedQ) {
+    setSyncedQ(query.q);
+    setSearch(query.q);
+  }
   const effective: DashboardQuery = { ...query, q: search.trim() };
   const rows = applyRequirementQuery(requirements, effective);
   const linkQuery = serializeDashboardQuery(effective);
