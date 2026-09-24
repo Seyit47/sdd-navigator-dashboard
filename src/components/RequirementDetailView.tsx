@@ -29,7 +29,7 @@ export function RequirementDetailView({ requirement, backHref }: { requirement: 
           <span>{p.assessment}</span>
         </p>
         <p className="mt-3">{requirement.description}</p>
-        <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+        <dl className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
           <dt className="text-ink-2">Status</dt>
           <dd>{requirement.status}</dd>
           <dt className="text-ink-2">Created</dt>
@@ -50,7 +50,7 @@ export function RequirementDetailView({ requirement, backHref }: { requirement: 
         {requirement.annotations.length === 0 ? (
           <p className="mt-2 text-sm text-ink-2">No annotations reference this requirement.</p>
         ) : (
-          <ul aria-label="Annotations" className="mt-2 grid gap-3">
+          <ul aria-label="Annotations" className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-3">
             {requirement.annotations.map((a) => (
               <li key={`${a.file}:${a.line}`}>
                 <p className="text-sm">
@@ -75,7 +75,7 @@ export function RequirementDetailView({ requirement, backHref }: { requirement: 
         {requirement.tasks.length === 0 ? (
           <p className="mt-2 text-sm text-ink-2">No tasks reference this requirement.</p>
         ) : (
-          <div className="mt-2 overflow-x-auto">
+          <div className="relative mt-2 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Linked tasks</caption>
               <thead className="text-ink-2">
