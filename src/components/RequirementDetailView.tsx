@@ -9,7 +9,7 @@ const TASK_HEADERS = ["ID", "Title", "Status", "Assignee", "Updated"];
 export function RequirementDetailView({ requirement, backHref }: { requirement: RequirementDetail; backHref: string }) {
   const p = STATUS_PRESENTATION[requirement.status];
   return (
-    <article aria-labelledby="requirement-title" className="grid gap-4">
+    <article aria-labelledby="requirement-title" className="grid grid-cols-[minmax(0,1fr)] gap-4">
       <p>
         <Link href={backHref} className="text-sm text-link hover:underline">
           ← Back to requirements
@@ -75,38 +75,40 @@ export function RequirementDetailView({ requirement, backHref }: { requirement: 
         {requirement.tasks.length === 0 ? (
           <p className="mt-2 text-sm text-ink-2">No tasks reference this requirement.</p>
         ) : (
-          <table className="mt-2 w-full text-left text-sm">
-            <caption className="sr-only">Linked tasks</caption>
-            <thead className="text-ink-2">
-              <tr>
-                {TASK_HEADERS.map((header) => (
-                  <th key={header} scope="col" className="px-2 py-2 font-semibold">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {requirement.tasks.map((t) => (
-                <tr key={t.id} className="border-t border-grid">
-                  <td className="px-2 py-2 font-mono">{t.id}</td>
-                  <td className="px-2 py-2">{t.title}</td>
-                  <td className="px-2 py-2">{formatTaskStatus(t.status)}</td>
-                  <td className="px-2 py-2">
-                    {t.assignee ?? (
-                      <>
-                        <span aria-hidden="true">—</span>
-                        <span className="sr-only">Unassigned</span>
-                      </>
-                    )}
-                  </td>
-                  <td className="px-2 py-2 tabular-nums text-ink-2">
-                    <time dateTime={t.updatedAt}>{formatDate(t.updatedAt)}</time>
-                  </td>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <caption className="sr-only">Linked tasks</caption>
+              <thead className="text-ink-2">
+                <tr>
+                  {TASK_HEADERS.map((header) => (
+                    <th key={header} scope="col" className="px-2 py-2 font-semibold">
+                      {header}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {requirement.tasks.map((t) => (
+                  <tr key={t.id} className="border-t border-grid">
+                    <td className="px-2 py-2 font-mono">{t.id}</td>
+                    <td className="px-2 py-2">{t.title}</td>
+                    <td className="px-2 py-2">{formatTaskStatus(t.status)}</td>
+                    <td className="px-2 py-2">
+                      {t.assignee ?? (
+                        <>
+                          <span aria-hidden="true">—</span>
+                          <span className="sr-only">Unassigned</span>
+                        </>
+                      )}
+                    </td>
+                    <td className="px-2 py-2 tabular-nums text-ink-2">
+                      <time dateTime={t.updatedAt}>{formatDate(t.updatedAt)}</time>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </article>

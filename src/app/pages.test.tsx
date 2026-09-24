@@ -54,6 +54,30 @@ describe("requirement page", () => {
   });
 });
 
+// jsdom has no layout engine; these structural rules are what keep the views within a
+// 360px phone viewport (verified in Chrome): grid tracks may shrink below their content's
+// width, and wide tables scroll inside their own box instead of widening the page.
+function expectPhoneSafeLayout(container: HTMLElement) {
+  const tables = Array.from(container.querySelectorAll("table"));
+  expect(tables.length).toBeGreaterThan(0);
+  for (const table of tables) expect(table.closest(".overflow-x-auto")).not.toBeNull();
+  expect(container.firstElementChild).toHaveClass("grid-cols-[minmax(0,1fr)]");
+}
+
+describe("phone layout", () => {
+  it("keeps the dashboard within the viewport", async () => {
+    const { container } = render(await DashboardPage());
+    expectPhoneSafeLayout(container);
+  });
+
+  it("keeps the requirement page within the viewport", async () => {
+    const { container } = render(
+      await RequirementPage({ params: Promise.resolve({ id: "FR-API-002" }), searchParams: Promise.resolve({}) }),
+    );
+    expectPhoneSafeLayout(container);
+  });
+});
+
 describe("loading states", () => {
   it("announce loading for both routes", () => {
     const { unmount } = render(<DashboardLoading />);

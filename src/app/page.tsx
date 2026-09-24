@@ -27,7 +27,7 @@ export default async function DashboardPage() {
   const orphansError = firstError(orphanAnnotations, orphanTasks);
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
       {stats.ok ? <SummaryPanel stats={stats.data} /> : <ErrorPanel title="Couldn't load project stats" error={stats.error} />}
 
       <Suspense fallback={null}>
