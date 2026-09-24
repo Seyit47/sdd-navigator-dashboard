@@ -1,0 +1,56 @@
+name: PR summary
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-summary-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Check for API key
+        id: key
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::notice::ANTHROPIC_API_KEY is not available (missing secret or fork PR); skipping PR summary."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.present == 'true'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        if: steps.key.outputs.present == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.key.outputs.present == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.key.outputs.present == 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Generate summary and update PR description
+        if: steps.key.outputs.present == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: node .github/scripts/pr-summary.mjs
