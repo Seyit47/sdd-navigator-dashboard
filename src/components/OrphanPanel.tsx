@@ -15,7 +15,7 @@ export function OrphanPanel({ annotations, tasks }: { annotations: Annotation[];
         {total === 0 ? (
           <p className="mt-3 text-sm">No orphans — every reference points to a known requirement.</p>
         ) : (
-          <div className="mt-3 grid gap-4">
+          <div className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-4">
             <OrphanTable
               title={`Annotations (${annotations.length})`}
               headers={["File", "Line", "Unknown reqId", "Type"]}
@@ -51,29 +51,31 @@ function OrphanTable({
       {rows.length === 0 ? (
         <p className="mt-1 text-sm text-ink-2">None.</p>
       ) : (
-        <table className="mt-1 w-full text-left text-sm">
-          <caption className="sr-only">{title}</caption>
-          <thead className="text-ink-2">
-            <tr>
-              {headers.map((header) => (
-                <th key={header} scope="col" className="px-2 py-1 font-semibold">
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.key} className="border-t border-grid">
-                {row.cells.map((cell, index) => (
-                  <td key={headers[index]} className={`px-2 py-1 ${index === 0 ? "font-mono" : ""}`}>
-                    {cell}
-                  </td>
+        <div className="mt-1 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">{title}</caption>
+            <thead className="text-ink-2">
+              <tr>
+                {headers.map((header) => (
+                  <th key={header} scope="col" className="px-2 py-1 font-semibold">
+                    {header}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.key} className="border-t border-grid">
+                  {row.cells.map((cell, index) => (
+                    <td key={headers[index]} className={`px-2 py-1 ${index === 0 ? "font-mono" : ""}`}>
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
