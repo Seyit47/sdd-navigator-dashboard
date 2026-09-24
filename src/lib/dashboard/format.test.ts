@@ -1,7 +1,7 @@
 // @req SCD-UI-001, SCD-UI-002, SCD-UI-004
 import { describe, expect, it } from "vitest";
 import { STATUS_PRESENTATION, share } from "./coverage";
-import { formatDate, formatDateTime, formatPercent, formatTaskStatus } from "./format";
+import { formatDate, formatDateTime, formatLabel, formatPercent, formatTaskStatus } from "./format";
 
 describe("formatDate", () => {
   it("formats an ISO timestamp as a UTC date", () => {
@@ -59,5 +59,11 @@ describe("STATUS_PRESENTATION", () => {
       ["partial", "Needs tests", "◐", "Partial"],
       ["missing", "Not implemented", "✕", "Missing"],
     ]);
+  });
+});
+
+describe("formatLabel", () => {
+  it("capitalises and replaces underscores", () => {
+    expect(["covered", "in_progress", "FR"].map((v) => formatLabel(v))).toEqual(["Covered", "In progress", "FR"]);
   });
 });

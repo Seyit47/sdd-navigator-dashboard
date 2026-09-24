@@ -34,3 +34,9 @@ export function formatPercent(value: number): string {
 export function formatTaskStatus(status: string): string {
   return status.replaceAll("_", " ");
 }
+
+/** "in_progress" → "In progress", "covered" → "Covered"; already-capitalised values are kept. */
+export function formatLabel(value: string): string {
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
