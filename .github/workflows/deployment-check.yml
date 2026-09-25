@@ -19,6 +19,9 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Chrome version
+        run: google-chrome --version
+
       - name: Public Production URL
         run: echo "BASE_URL=$(node -p 'const pkg = require("./package.json"); pkg.homepage')" >> "$GITHUB_ENV"
 
