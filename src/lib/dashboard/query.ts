@@ -31,7 +31,7 @@ export const DEFAULT_QUERY: DashboardQuery = {
 };
 
 /** The subset of URLSearchParams / ReadonlyURLSearchParams we read. */
-export interface QueryParams {
+interface QueryParams {
   get(name: string): string | null;
   getAll(name: string): string[];
 }

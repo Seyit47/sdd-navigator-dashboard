@@ -36,10 +36,10 @@ export function RequirementDetailView({ requirement, backHref }: { requirement: 
       </header>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <section aria-label="Description" className="rounded-xl bg-surface p-5 shadow-card">
+        <section aria-label="Description" className="surface-card p-5">
           <p className="leading-relaxed">{requirement.description}</p>
         </section>
-        <section aria-label="Details" className="rounded-xl bg-surface p-5 shadow-card">
+        <section aria-label="Details" className="surface-card p-5">
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
             <dt className="text-muted">ID</dt>
             <dd className="font-mono">{requirement.id}</dd>

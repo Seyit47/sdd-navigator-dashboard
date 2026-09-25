@@ -59,6 +59,16 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* A raised surface (card background and shadow); cards add the rounded corners. */
+@utility surface-raised {
+  background-color: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+@utility surface-card {
+  @apply surface-raised rounded-xl;
+}
+
 body {
   background: var(--plane);
   color: var(--ink);

@@ -9,10 +9,10 @@ import tasksData from "../../../data/tasks.json";
 import { compareAnnotations, compareRows } from "./sort";
 import type { Transport, TransportRequest, TransportResponse } from "./transport";
 
-export const MOCK_DELAY_MS = 300;
+const MOCK_DELAY_MS = 300;
 export const MOCK_SCAN_DURATION_MS = 1500;
 
-export interface MockOptions {
+interface MockOptions {
   /** Artificial latency per response so loading states are visible. */
   delayMs?: number;
   /** Clock used for the scan lifecycle. */
