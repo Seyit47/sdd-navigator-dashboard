@@ -1,2 +1,5 @@
+# @req SCD-DEP-001, SCD-VAL-002
+pnpm typecheck
+pnpm lint
 pnpm test
 pnpm build

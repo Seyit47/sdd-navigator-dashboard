@@ -2,6 +2,9 @@
   "name": "sdd-navigator-dashboard",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +12,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:contract": "CONTRACT=1 vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
+    "check:coverage": "node scripts/check-coverage.ts",
+    "validate": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:coverage",
     "prepare": "husky"
   },
   "dependencies": {
@@ -23,16 +28,23 @@
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "^4.13.0",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "husky": "^9.1.7",
+    "jsdom": "^30.1.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "yaml": "^2.9.1"
   },
   "packageManager": "pnpm@12.5.1"
 }

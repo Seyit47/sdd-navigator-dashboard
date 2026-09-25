@@ -4,6 +4,7 @@
 # type: FR = functional, AR = architectural / non-functional
 # Code implementing or testing a requirement is annotated with `@req <ID>`.
 # API contract: https://api.pdd.foreachpartners.com/spec/sdd-coverage-api.yaml (v3.0.0)
+# Self-check: `pnpm check:coverage` fails when any requirement has no implementation annotation.
 
 # --- API integration ---------------------------------------------------------
 
@@ -38,19 +39,21 @@
 
 - id: SCD-UI-001
   type: FR
-  title: Load project stats from /stats endpoint
+  title: Summary panel from /stats
   description: >-
-    Dashboard MUST fetch RequirementStats, AnnotationStats, and TaskStats from
-    GET /stats on initial load and display them in the summary panel, together
-    with the overall coverage percentage and lastScanAt timestamp.
+    Dashboard MUST fetch GET /stats on load and show, as KPI cards, the overall
+    coverage percentage with a progress indicator, the total requirement count
+    with the FR and AR counts, and the annotation and task orphan counts with a
+    warning indicator only when either is above zero, together with the
+    lastScanAt timestamp.
 
 - id: SCD-UI-002
   type: FR
   title: Show coverage breakdown by status
   description: >-
-    Dashboard MUST display the count and share of requirements per coverage
-    status, labelled covered (implemented and tested), partial (implemented,
-    not tested) and missing (unaddressed).
+    Summary MUST show the covered, partial and missing counts as numbers and as
+    one segmented bar, with text labels so that status is never conveyed by
+    color alone.
 
 - id: SCD-UI-003
   type: FR
@@ -64,9 +67,36 @@
   title: Requirement detail with traceability chain
   description: >-
     Selecting a requirement MUST open a detail view, addressable by URL, loaded
-    from GET /requirements/{id} that shows its description, every linked
-    annotation (file, line, impl/test type, code snippet) and every linked task
-    (id, title, status, assignee).
+    from GET /requirements/{id} that shows all its fields, a coverage assessment
+    label (Fully covered, Needs tests, Not implemented), every linked annotation
+    (file, line, impl/test type, code snippet), every linked task (id, title,
+    status, assignee, updatedAt) and a link back to the requirements table that
+    preserves the active filters.
+
+- id: SCD-UI-005
+  type: FR
+  title: Tasks panel
+  description: >-
+    Dashboard MUST list all tasks from GET /tasks with id, requirement id,
+    title, status and assignee (when present), and MUST highlight orphan tasks,
+    whose requirementId is not a known requirement, with a visible text marker
+    in addition to styling.
+
+- id: SCD-UI-006
+  type: FR
+  title: Orphan panel
+  description: >-
+    Dashboard MUST show a collapsible orphan section listing orphan annotations
+    (file, line, unknown reqId, type) and orphan tasks (id, title, unknown
+    requirementId) in one place.
+
+- id: SCD-UI-007
+  type: AR
+  title: Minimalist visual design
+  description: >-
+    The UI MUST present content in cards on a neutral page, use segmented
+    controls for filters and tinted pills for status, and MUST show pending
+    feedback (aria-busy and reduced opacity) while filtered data is loading.
 
 # --- Filtering ---------------------------------------------------------------
 
@@ -74,16 +104,27 @@
   type: FR
   title: Filter requirements by type and status
   description: >-
-    Requirements list MUST support filtering by type (FR, AR) and coverage status
-    (covered, partial, missing), combinable, with active filters reflected in the
-    URL query string so a filtered view survives reload and can be shared.
+    Requirements list MUST offer multi-select filters for type (FR, AR) and
+    coverage status (covered, partial, missing), reflected in the URL as
+    repeated query parameters (e.g. ?type=FR&status=missing); the selected
+    filters MUST be sent to the data source as query parameters, one request per
+    selected value when several are selected and none when all are selected.
 
 - id: SCD-FLT-002
   type: FR
   title: Search requirements by id or title
   description: >-
-    Requirements list SHOULD provide a text search that keeps only requirements
-    whose id or title contains the query, case-insensitively.
+    Requirements list MUST provide a text search, synced to the q query
+    parameter, that keeps only requirements whose id or title contains the
+    query, case-insensitively.
+
+- id: SCD-FLT-003
+  type: FR
+  title: Filter tasks by status
+  description: >-
+    Tasks panel MUST offer a multi-select task status filter (open, in_progress,
+    done), reflected in the URL as repeated taskStatus query parameters and sent
+    to GET /tasks as the status query parameter, one request per selected value.
 
 # --- Sorting -----------------------------------------------------------------
 
@@ -92,8 +133,8 @@
   title: Sort requirements by id or updatedAt
   description: >-
     Requirements list MUST support sorting by id or updatedAt in ascending or
-    descending order, defaulting to id ascending as the API does, with the sort
-    reflected in the URL query string.
+    descending order, defaulting to id ascending, with the sort reflected in the
+    URL and sent to GET /requirements as the sort and order query parameters.
 
 # --- Error / loading states --------------------------------------------------
 
@@ -147,8 +188,8 @@
   title: Light and dark themes
   description: >-
     App MUST support light and dark themes, follow the OS prefers-color-scheme
-    setting by default, and provide a toggle whose choice persists across page
-    reloads.
+    setting on first visit, and provide a toggle whose choice persists in
+    localStorage across page reloads.
 
 - id: SCD-THEME-002
   type: AR
@@ -164,8 +205,9 @@
   type: AR
   title: Production build gated by hooks
   description: >-
-    `pnpm build` MUST complete without type or lint errors, and the pre-commit
-    and pre-push git hooks MUST block the commit or push when it fails.
+    `pnpm build` MUST complete without type errors; the pre-commit hook MUST
+    block a commit when the tests or the build fail, and the pre-push hook MUST
+    additionally run the type check and lint.
 
 - id: SCD-DEP-002
   type: AR
@@ -176,3 +218,22 @@
     NEXT_PUBLIC_API_URL configured per Vercel environment; the README MUST
     document the environment variables and the local build and run commands
     for both data modes.
+
+# --- Self-validation ---------------------------------------------------------
+
+- id: SCD-VAL-001
+  type: AR
+  title: Self-validation coverage script
+  description: >-
+    scripts/check-coverage.ts MUST parse requirements.yaml, scan the source tree
+    for @req annotations, print a coverage report including orphan annotations,
+    and exit with code 1 when any requirement has no implementation annotation
+    (code 2 when an input file cannot be read or parsed).
+
+- id: SCD-VAL-002
+  type: AR
+  title: Deterministic pre-submit checks
+  description: >-
+    `pnpm validate` MUST run the type check (tsc --noEmit), ESLint, all tests,
+    the production build and the coverage check, stopping at the first failure,
+    and CI MUST run it on every pull request and on pushes to main.

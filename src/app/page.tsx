@@ -1,69 +1,66 @@
-import Image from "next/image";
+// @req SCD-UI-001, SCD-UI-003, SCD-UI-005, SCD-UI-006, SCD-FLT-001, SCD-FLT-003, SCD-STATE-002
+import { connection } from "next/server";
+import { Suspense } from "react";
+import { ErrorPanel } from "@/components/ErrorPanel";
+import { OrphanPanel } from "@/components/OrphanPanel";
+import { RequirementsTable } from "@/components/RequirementsTable";
+import { SummaryPanel } from "@/components/summary/SummaryPanel";
+import { TasksPanel } from "@/components/TasksPanel";
+import { getStats, listAnnotations, listTasks, type ApiError, type Result } from "@/lib/api";
+import { fetchRequirements, fetchTasks } from "@/lib/dashboard/fetch";
+import { parseDashboardQuery, searchParamsFromRecord } from "@/lib/dashboard/query";
 
-export default function Home() {
+function firstError(...results: Result<unknown>[]): ApiError | null {
+  for (const result of results) if (!result.ok) return result.error;
+  return null;
+}
+
+export default async function DashboardPage({ searchParams }: PageProps<"/">) {
+  // Render per request: filters come from the URL and go to the data source.
+  await connection();
+  const query = parseDashboardQuery(searchParamsFromRecord(await searchParams));
+  const [stats, requirements, tasks, orphanTasks, orphanAnnotations] = await Promise.all([
+    getStats(),
+    fetchRequirements(query),
+    fetchTasks(query),
+    listTasks({ orphans: true }),
+    listAnnotations({ orphans: true }),
+  ]);
+  const tasksError = firstError(tasks, orphanTasks);
+  const orphansError = firstError(orphanAnnotations, orphanTasks);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
+      {stats.ok ? <SummaryPanel stats={stats.data} /> : <ErrorPanel title="Couldn't load project stats" error={stats.error} />}
+
+      <Suspense fallback={null}>
+        {requirements.ok ? (
+          <RequirementsTable
+            requirements={requirements.data}
+            total={stats.ok ? stats.data.requirements.total : requirements.data.length}
+          />
+        ) : (
+          <ErrorPanel title="Couldn't load requirements" error={requirements.error} />
+        )}
+      </Suspense>
+
+      <Suspense fallback={null}>
+        {tasksError ? (
+          <ErrorPanel title="Couldn't load tasks" error={tasksError} />
+        ) : tasks.ok && orphanTasks.ok ? (
+          <TasksPanel
+            tasks={tasks.data}
+            total={stats.ok ? stats.data.tasks.total : tasks.data.length}
+            orphanTaskIds={orphanTasks.data.map((t) => t.id)}
+          />
+        ) : null}
+      </Suspense>
+
+      {orphansError ? (
+        <ErrorPanel title="Couldn't load orphans" error={orphansError} />
+      ) : orphanAnnotations.ok && orphanTasks.ok ? (
+        <OrphanPanel annotations={orphanAnnotations.data} tasks={orphanTasks.data} />
+      ) : null}
     </div>
   );
 }
