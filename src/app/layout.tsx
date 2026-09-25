@@ -1,6 +1,7 @@
 // @req SCD-THEME-001, SCD-API-001
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Header } from "@/components/Header";
 import { THEME_INIT_SCRIPT } from "@/lib/dashboard/theme";
 import "./globals.css";
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full bg-plane font-sans text-ink">
         <Header />
         <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+        <SpeedInsights />
       </body>
     </html>
   );
