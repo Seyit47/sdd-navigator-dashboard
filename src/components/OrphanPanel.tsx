@@ -1,36 +1,42 @@
-// @req SCD-UI-006, SCD-A11Y-001
+// @req SCD-UI-006, SCD-UI-007, SCD-A11Y-001
 import type { Annotation, Task } from "@/lib/api";
 
 export function OrphanPanel({ annotations, tasks }: { annotations: Annotation[]; tasks: Task[] }) {
   const total = annotations.length + tasks.length;
   return (
-    <section id="orphans" aria-labelledby="orphans-heading" className="rounded-lg border border-hairline bg-surface p-4">
-      <details open>
-        <summary className="cursor-pointer">
-          <h2 id="orphans-heading" className="inline text-base font-semibold">
-            Orphans ({total})
+    <section id="orphans" aria-labelledby="orphans-heading" className="rounded-xl bg-surface shadow-card">
+      <details open className="group">
+        <summary className="flex cursor-pointer list-none items-center gap-2 p-5">
+          <h2 id="orphans-heading" className="text-base font-semibold tracking-tight">
+            Orphans
           </h2>
-          <span className="ml-2 text-sm text-ink-2">References to requirements that are not in requirements.yaml</span>
+          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-ink-2">{total}</span>
+          <span aria-hidden="true" className="ml-auto text-muted transition-transform group-open:rotate-180">
+            ⌄
+          </span>
         </summary>
-        {total === 0 ? (
-          <p className="mt-3 text-sm">No orphans — every reference points to a known requirement.</p>
-        ) : (
-          <div className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-4">
-            <OrphanTable
-              title={`Annotations (${annotations.length})`}
-              headers={["File", "Line", "Unknown reqId", "Type"]}
-              rows={annotations.map((a) => ({
-                key: `${a.file}:${a.line}:${a.reqId}`,
-                cells: [a.file, String(a.line), a.reqId, a.type],
-              }))}
-            />
-            <OrphanTable
-              title={`Tasks (${tasks.length})`}
-              headers={["Task", "Title", "Unknown requirementId"]}
-              rows={tasks.map((t) => ({ key: t.id, cells: [t.id, t.title, t.requirementId] }))}
-            />
-          </div>
-        )}
+        <div className="px-5 pb-5">
+          <p className="text-sm text-ink-2">References to requirements that are not in requirements.yaml.</p>
+          {total === 0 ? (
+            <p className="mt-3 text-sm">No orphans — every reference points to a known requirement.</p>
+          ) : (
+            <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-6">
+              <OrphanTable
+                title={`Annotations (${annotations.length})`}
+                headers={["File", "Line", "Unknown reqId", "Type"]}
+                rows={annotations.map((a) => ({
+                  key: `${a.file}:${a.line}:${a.reqId}`,
+                  cells: [a.file, String(a.line), a.reqId, a.type],
+                }))}
+              />
+              <OrphanTable
+                title={`Tasks (${tasks.length})`}
+                headers={["Task", "Title", "Unknown requirementId"]}
+                rows={tasks.map((t) => ({ key: t.id, cells: [t.id, t.title, t.requirementId] }))}
+              />
+            </div>
+          )}
+        </div>
       </details>
     </section>
   );
@@ -51,13 +57,13 @@ function OrphanTable({
       {rows.length === 0 ? (
         <p className="mt-1 text-sm text-ink-2">None.</p>
       ) : (
-        <div className="relative mt-1 overflow-x-auto">
+        <div className="relative mt-2 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">{title}</caption>
-            <thead className="text-ink-2">
-              <tr>
+            <thead>
+              <tr className="text-xs text-muted">
                 {headers.map((header) => (
-                  <th key={header} scope="col" className="px-2 py-1 font-semibold">
+                  <th key={header} scope="col" className="px-3 py-2 font-medium">
                     {header}
                   </th>
                 ))}
@@ -65,9 +71,9 @@ function OrphanTable({
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.key} className="border-t border-grid">
+                <tr key={row.key} className="border-t border-hairline">
                   {row.cells.map((cell, index) => (
-                    <td key={headers[index]} className={`px-2 py-1 ${index === 0 ? "font-mono" : ""}`}>
+                    <td key={headers[index]} className={`px-3 py-2.5 ${index === 0 ? "font-mono" : ""}`}>
                       {cell}
                     </td>
                   ))}
