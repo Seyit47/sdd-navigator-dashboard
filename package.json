@@ -16,7 +16,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "check:coverage": "node scripts/check-coverage.ts",
     "check:browser": "node scripts/check-browser.mjs",
-    "validate": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:coverage",
+    "validate": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:coverage --strict",
     "prepare": "husky"
   },
   "dependencies": {

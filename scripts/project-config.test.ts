@@ -17,7 +17,9 @@ const commands = (file: string) =>
 // @req SCD-VAL-002, SCD-DEP-001
 describe("deterministic checks", () => {
   it("pnpm validate runs typecheck, lint, tests, build and coverage in order", () => {
-    expect(pkg.scripts.validate).toBe("pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:coverage");
+    expect(pkg.scripts.validate).toBe(
+      "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:coverage --strict",
+    );
   });
 
   it("the pre-commit hook runs the tests and the build", () => {
@@ -38,10 +40,11 @@ describe("deterministic checks", () => {
     const ci = readFileSync(".github/workflows/ci.yml", "utf8");
     expect(ci).toMatch(/^\s*pull_request:/m);
     expect(ci).toMatch(/branches:\s*\[main\]/);
-    expect(ci).toContain("node-version: 24");
+    expect(readFileSync(".github/actions/setup/action.yml", "utf8")).toContain("node-version: 24");
     expect(ci).toContain("run: pnpm validate");
     expect(ci).toContain("run: pnpm check:browser");
     expect(ci).toContain("run: pnpm test:contract");
+    expect(ci).toMatch(/commitlint --from .*pull_request\.base\.sha/);
   });
 
   it("requires a Node version that runs TypeScript natively", () => {
@@ -58,7 +61,8 @@ describe("traceability", () => {
         (f) =>
           /^(src|scripts)\/.+\.(?:[cm]?[jt]sx?|css)$/.test(f) ||
           /^\.husky\/[^_/][^/]*$/.test(f) ||
-          /^[^/]+\.config\.[cm]?[jt]s$/.test(f),
+          /^[^/]+\.config\.[cm]?[jt]s$/.test(f) ||
+          /^\.github\/(?:workflows|actions)\/.+\.ya?ml$/.test(f),
       );
     expect(files.length).toBeGreaterThan(40);
     expect(files.filter((f) => !readFileSync(f, "utf8").includes("@req"))).toEqual([]);
@@ -92,6 +96,15 @@ describe("deployment verification", () => {
     expect(workflow).toContain("github.event.deployment_status.environment == 'Production'");
     expect(workflow).toContain("run: pnpm check:browser");
     expect(workflow).toContain("BASE_URL: ${{ github.event.deployment_status.environment_url }}");
+  });
+
+  it("share one setup action on Node 24 action versions", () => {
+    for (const file of [".github/workflows/ci.yml", ".github/workflows/deployment-check.yml"]) {
+      const workflow = readFileSync(file, "utf8");
+      expect(workflow).toContain("uses: ./.github/actions/setup");
+      expect(workflow).not.toMatch(/@v[1-5]\b/);
+    }
+    expect(readFileSync(".github/actions/setup/action.yml", "utf8")).toMatch(/using: composite/);
   });
 
   it("has a browser check script", () => {
