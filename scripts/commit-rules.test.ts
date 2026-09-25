@@ -7,6 +7,7 @@ const rule = (type: string, raw: string) => requirementReference({ type, raw });
 const commitlint = (message: string) =>
   spawnSync("node_modules/.bin/commitlint", [], { input: message, encoding: "utf8" }).status;
 
+// @req SCD-VAL-003
 describe("requirement-reference commit rule", () => {
   it.each(["feat", "fix", "refactor", "perf", "test"])("rejects a %s commit without a Refs footer", (type) => {
     expect(rule(type, `${type}(ui): change something`)[0]).toBe(false);

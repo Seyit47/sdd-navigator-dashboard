@@ -30,6 +30,7 @@ afterEach(() => {
   for (const root of created.splice(0)) rmSync(root, { recursive: true, force: true });
 });
 
+// @req SCD-VAL-001
 describe("check-coverage CLI", () => {
   it("exits 0 and prints the report when every requirement is implemented", () => {
     const root = project({

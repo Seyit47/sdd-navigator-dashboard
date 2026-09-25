@@ -22,6 +22,7 @@ const conformance: Array<[string, z.ZodType, unknown]> = [
   ["scan.json", ScanStatusSchema, scan],
 ];
 
+// @req SCD-API-002
 describe("mock fixtures conform to the API schema", () => {
   it.each(conformance)("%s", (_name, schema, data) => {
     const result = schema.safeParse(data);
@@ -37,6 +38,7 @@ function countBy<T>(items: readonly T[], key: (item: T) => string): Record<strin
   }, {});
 }
 
+// @req SCD-API-002
 describe("stats.json agrees with the other fixtures", () => {
   const requirementIds = new Set(requirements.map((r) => r.id));
 

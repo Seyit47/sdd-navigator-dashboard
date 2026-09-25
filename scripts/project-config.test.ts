@@ -14,6 +14,7 @@ const commands = (file: string) =>
     .map((line) => line.trim())
     .filter((line) => line !== "" && !line.startsWith("#"));
 
+// @req SCD-VAL-002, SCD-DEP-001
 describe("deterministic checks", () => {
   it("pnpm validate runs typecheck, lint, tests, build and coverage in order", () => {
     expect(pkg.scripts.validate).toBe("pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:coverage");
@@ -40,6 +41,7 @@ describe("deterministic checks", () => {
   });
 });
 
+// @req SCD-VAL-001
 describe("traceability", () => {
   it("every tracked source, script, hook and config file carries an @req annotation", () => {
     const files = execFileSync("git", ["ls-files"], { encoding: "utf8" })
@@ -55,6 +57,26 @@ describe("traceability", () => {
   });
 });
 
+// @req SCD-VAL-001
+describe("per-test traceability", () => {
+  it("every describe block in a test file is directly preceded by an @req comment", () => {
+    const testFiles = execFileSync("git", ["ls-files"], { encoding: "utf8" })
+      .split("\n")
+      .filter((f) => /\.(?:test|contract)\.[cm]?[jt]sx?$/.test(f));
+    const unannotated = testFiles.flatMap((file) => {
+      const lines = readFileSync(file, "utf8").split("\n");
+      return lines.flatMap((line, index) => {
+        if (!/^\s*describe(?:\.each)?\s*\(/.test(line)) return [];
+        const previous = lines.slice(0, index).reverse().find((l) => l.trim() !== "") ?? "";
+        return /^\s*\/\/ @req SCD-/.test(previous) ? [] : [`${file}:${index + 1}`];
+      });
+    });
+    expect(testFiles.length).toBeGreaterThan(20);
+    expect(unannotated).toEqual([]);
+  });
+});
+
+// @req SCD-DEP-002
 describe("deliverables", () => {
   it("every requirements.yaml entry has a non-empty description", () => {
     const entries = parse(readFileSync("requirements.yaml", "utf8")) as Array<{ id: string; description?: unknown }>;
@@ -73,6 +95,7 @@ describe("deliverables", () => {
   });
 });
 
+// @req SCD-DEP-002
 describe("deployment docs", () => {
   it("the README documents data modes, checks and Vercel deployment", () => {
     const readme = readFileSync("README.md", "utf8");

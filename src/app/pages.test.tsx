@@ -19,6 +19,7 @@ beforeEach(() => {
 const dashboard = (search: Record<string, string | string[]> = {}) =>
   DashboardPage({ params: Promise.resolve({}), searchParams: Promise.resolve(search) });
 
+// @req SCD-UI-001, SCD-UI-003, SCD-UI-005, SCD-UI-006, SCD-FLT-001, SCD-FLT-003
 describe("dashboard page", () => {
   it("renders the summary, requirements, tasks and orphans from mock data", async () => {
     render(await dashboard());
@@ -37,6 +38,7 @@ describe("dashboard page", () => {
   });
 });
 
+// @req SCD-UI-004, SCD-STATE-002
 describe("requirement page", () => {
   it("renders the requirement and keeps only recognised filters in the breadcrumb", async () => {
     render(
@@ -73,6 +75,7 @@ function expectPhoneSafeLayout(container: HTMLElement) {
   expect(container.firstElementChild).toHaveClass("grid-cols-[minmax(0,1fr)]");
 }
 
+// @req SCD-A11Y-001, SCD-UI-007
 describe("phone layout", () => {
   it("keeps the dashboard within the viewport", async () => {
     const { container } = render(await dashboard());
@@ -87,6 +90,7 @@ describe("phone layout", () => {
   });
 });
 
+// @req SCD-STATE-001
 describe("loading states", () => {
   it("announce loading for both routes", () => {
     const { unmount } = render(<DashboardLoading />);

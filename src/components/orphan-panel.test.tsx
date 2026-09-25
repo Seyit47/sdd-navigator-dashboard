@@ -22,6 +22,7 @@ const cells = (table: HTMLElement) =>
     .slice(1)
     .map((row) => within(row).getAllByRole("cell").map((c) => c.textContent));
 
+// @req SCD-UI-006, SCD-UI-007, SCD-A11Y-002
 describe("OrphanPanel", () => {
   it("lists orphan annotations and orphan tasks together", () => {
     render(<OrphanPanel annotations={annotations} tasks={tasks} />);

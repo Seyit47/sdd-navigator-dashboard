@@ -19,6 +19,7 @@ const calls: Array<[string, () => Promise<Result<unknown>>]> = [
   ["GET /scan", () => api.getScanStatus()],
 ];
 
+// @req SCD-API-002
 describe(`live API contract (${baseUrl})`, () => {
   it.each(calls)("%s matches the schema", async (_name, call) => {
     const result = await call();

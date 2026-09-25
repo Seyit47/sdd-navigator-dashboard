@@ -8,12 +8,14 @@ import { dataOf, errorOf } from "./test-helpers";
 const api = createApiClient(mockTransport({ delayMs: 0 }));
 const ids = <T extends { id: string }>(rows: T[]) => rows.map((row) => row.id);
 
+// @req SCD-API-002
 describe("mock /stats", () => {
   it("returns the stats fixture", async () => {
     expect(dataOf(await api.getStats())).toEqual(stats);
   });
 });
 
+// @req SCD-API-002, SCD-SORT-001
 describe("mock /requirements", () => {
   it("sorts by id ascending by default", async () => {
     expect(ids(dataOf(await api.listRequirements()))).toEqual([
@@ -45,6 +47,7 @@ describe("mock /requirements", () => {
   });
 });
 
+// @req SCD-API-002
 describe("mock /requirements/{id}", () => {
   it("joins annotations (by file, line) and tasks", async () => {
     const detail = dataOf(await api.getRequirement("FR-SCAN-001"));
@@ -75,6 +78,7 @@ describe("mock /requirements/{id}", () => {
   });
 });
 
+// @req SCD-API-002
 describe("mock /annotations", () => {
   it("returns all 16 sorted by file then line", async () => {
     const rows = dataOf(await api.listAnnotations());
@@ -96,6 +100,7 @@ describe("mock /annotations", () => {
   });
 });
 
+// @req SCD-API-002
 describe("mock /tasks", () => {
   it("filters by status and orphans", async () => {
     expect(ids(dataOf(await api.listTasks({ status: "open" })))).toEqual(["TASK-004", "TASK-005", "TASK-006"]);
@@ -109,6 +114,7 @@ describe("mock /tasks", () => {
   });
 });
 
+// @req SCD-API-002
 describe("mock /scan", () => {
   it("runs a scan lifecycle against the injected clock", async () => {
     let clock = Date.parse("2026-09-25T12:00:00Z");
@@ -135,6 +141,7 @@ describe("mock /scan", () => {
   });
 });
 
+// @req SCD-API-002, SCD-STATE-001
 describe("mock transport", () => {
   afterEach(() => {
     vi.useRealTimers();

@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "./contrast";
 
+// @req SCD-A11Y-001
 describe("contrastRatio", () => {
   it("is 21:1 for black on white", () => {
     expect(contrastRatio("#000000", "#ffffff")).toBeCloseTo(21, 5);

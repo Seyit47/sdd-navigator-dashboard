@@ -34,6 +34,7 @@ const BACKGROUNDS = ["surface", "plane", "surface-2"];
 const TINTS = ["good-tint", "warning-tint", "critical-tint"];
 const textPairs = TEXT.flatMap((text) => BACKGROUNDS.map((background) => [text, background] as const));
 
+// @req SCD-A11Y-001
 describe.each([
   ["light", light],
   ["dark", dark],
@@ -47,6 +48,7 @@ describe.each([
   });
 });
 
+// @req SCD-THEME-001, SCD-THEME-002
 describe("theme tokens", () => {
   it("define the fixed status colours", () => {
     expect([light.good, light.warning, light.critical]).toEqual(["#0ca30c", "#fab219", "#d03b3b"]);

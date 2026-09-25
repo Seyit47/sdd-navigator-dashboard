@@ -10,6 +10,7 @@ const sources = execFileSync("git", ["ls-files", "src", "scripts"], { encoding: 
 const read = (f: string) => readFileSync(f, "utf8");
 const filesContaining = (pattern: RegExp) => sources.filter((f) => pattern.test(read(f)));
 
+// @req SCD-API-003, SCD-VAL-001
 describe("single source of truth", () => {
   it.each([
     ['"FR", "AR"', /"FR",\s*"AR"/],

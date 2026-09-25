@@ -9,6 +9,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// @req SCD-API-001
 describe("resolveApiBaseUrl", () => {
   it.each([undefined, "", "   "])("treats %j as unset (mock mode)", (value) => {
     expect(resolveApiBaseUrl(value)).toBeUndefined();
@@ -19,6 +20,7 @@ describe("resolveApiBaseUrl", () => {
   });
 });
 
+// @req SCD-API-001
 describe("createTransport", () => {
   it("serves fixtures when no base URL is configured", async () => {
     const stats = dataOf(await createApiClient(createTransport(undefined)).getStats());
@@ -33,6 +35,7 @@ describe("createTransport", () => {
   });
 });
 
+// @req SCD-API-001, SCD-API-003
 describe("@/lib/api entry point", () => {
   it("runs in mock mode when NEXT_PUBLIC_API_URL is unset", () => {
     expect(api.dataMode).toBe("mock");
