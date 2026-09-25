@@ -15,6 +15,7 @@
     "test:contract": "CONTRACT=1 vitest run",
     "typecheck": "next typegen && tsc --noEmit",
     "check:coverage": "node scripts/check-coverage.ts",
+    "check:browser": "node scripts/check-browser.mjs",
     "validate": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:coverage",
     "prepare": "husky"
   },

@@ -25,7 +25,13 @@ describe("deterministic checks", () => {
   });
 
   it("the pre-push hook adds the type check and lint", () => {
-    expect(commands(".husky/pre-push")).toEqual(["pnpm typecheck", "pnpm lint", "pnpm test", "pnpm build"]);
+    expect(commands(".husky/pre-push")).toEqual([
+      "pnpm typecheck",
+      "pnpm lint",
+      "pnpm test",
+      "pnpm build",
+      "pnpm check:coverage",
+    ]);
   });
 
   it("CI runs pnpm validate on Node 24 for pull requests and pushes to main", () => {
@@ -34,6 +40,8 @@ describe("deterministic checks", () => {
     expect(ci).toMatch(/branches:\s*\[main\]/);
     expect(ci).toContain("node-version: 24");
     expect(ci).toContain("run: pnpm validate");
+    expect(ci).toContain("run: pnpm check:browser");
+    expect(ci).toContain("run: pnpm test:contract");
   });
 
   it("requires a Node version that runs TypeScript natively", () => {
@@ -73,6 +81,21 @@ describe("per-test traceability", () => {
     });
     expect(testFiles.length).toBeGreaterThan(20);
     expect(unannotated).toEqual([]);
+  });
+});
+
+// @req SCD-DEP-002, SCD-VAL-002
+describe("deployment verification", () => {
+  it("runs the browser checks against every successful Production deployment", () => {
+    const workflow = readFileSync(".github/workflows/deployment-check.yml", "utf8");
+    expect(workflow).toMatch(/^\s*deployment_status:/m);
+    expect(workflow).toContain("github.event.deployment_status.environment == 'Production'");
+    expect(workflow).toContain("run: pnpm check:browser");
+    expect(workflow).toContain("BASE_URL: ${{ github.event.deployment_status.environment_url }}");
+  });
+
+  it("has a browser check script", () => {
+    expect(pkg.scripts["check:browser"]).toBe("node scripts/check-browser.mjs");
   });
 });
 

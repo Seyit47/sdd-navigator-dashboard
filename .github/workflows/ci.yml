@@ -27,3 +27,12 @@ jobs:
 
       - name: Validate
         run: pnpm validate
+
+      # Layout, pending feedback, server-side filtering and theming in real Chrome
+      # (preinstalled on GitHub's Ubuntu runners), against the build from `validate`.
+      - name: Browser checks
+        run: pnpm check:browser
+
+      # The live SDD Navigator API still matches the schemas and honours the filter params.
+      - name: Live API contract
+        run: pnpm test:contract
