@@ -69,12 +69,25 @@ async function startServer() {
 
 async function connectChrome() {
   const profile = mkdtempSync(join(tmpdir(), "check-browser-"));
+  const chromePath = process.env.CHROME_PATH ?? "google-chrome";
   const chrome = spawn(
-    process.env.CHROME_PATH ?? "google-chrome",
+    chromePath,
     ["--headless=new", "--disable-gpu", "--no-first-run", "--no-sandbox", `--remote-debugging-port=${DEBUG_PORT}`, `--user-data-dir=${profile}`, "about:blank"],
-    { stdio: "ignore" },
+    { stdio: ["ignore", "ignore", "pipe"] },
   );
   children.push(chrome);
+  // Keep Chrome's last output and exit status so a failed start explains itself.
+  let chromeOutput = "";
+  let chromeExit = null;
+  chrome.stderr.on("data", (chunk) => {
+    chromeOutput = (chromeOutput + chunk).slice(-4000);
+  });
+  chrome.on("exit", (code, signal) => {
+    chromeExit = `exited with code ${code}${signal ? `, signal ${signal}` : ""}`;
+  });
+  chrome.on("error", (error) => {
+    chromeExit = `could not be run (${chromePath}): ${error.message}`;
+  });
   process.on("exit", () => {
     try {
       rmSync(profile, { recursive: true, force: true, maxRetries: 5 });
@@ -84,16 +97,20 @@ async function connectChrome() {
   });
 
   let wsUrl;
-  const deadline = Date.now() + 15_000;
-  while (!wsUrl && Date.now() < deadline) {
+  const deadline = Date.now() + 60_000;
+  while (!wsUrl && !chromeExit && Date.now() < deadline) {
     try {
       const targets = await (await fetch(`http://127.0.0.1:${DEBUG_PORT}/json`)).json();
       wsUrl = targets.find((t) => t.type === "page")?.webSocketDebuggerUrl;
     } catch {
-      await sleep(200);
+      // DevTools endpoint not up yet.
     }
+    if (!wsUrl) await sleep(250);
   }
-  if (!wsUrl) throw new Error("Chrome did not start");
+  if (!wsUrl) {
+    const lastOutput = chromeOutput.trim().split("\n").slice(-6).join(" | ");
+    throw new Error(`Chrome did not start: ${chromeExit ?? "no DevTools page target within 60 s"}${lastOutput ? ` — ${lastOutput}` : ""}`);
+  }
 
   const ws = new WebSocket(wsUrl);
   await new Promise((resolve, reject) => {
