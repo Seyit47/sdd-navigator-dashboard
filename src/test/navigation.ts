@@ -1,13 +1,14 @@
 // @req SCD-FLT-001
-// Test double for next/navigation (jsdom only). It models the real behaviour the dashboard
-// relies on: useSearchParams follows window.history.replaceState immediately, while
-// router.replace is a server navigation whose URL change would only land after a server
-// render — so here it deliberately does not change the URL at all.
+// Test double for next/navigation (jsdom only), modelling what the dashboard relies on:
+// - router.replace starts a server navigation whose URL change only lands later; tests
+//   land it explicitly with commitNavigation().
+// - window.history.replaceState changes the URL immediately and useSearchParams follows it.
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 
 const listeners = new Set<() => void>();
 const realReplaceState = window.history.replaceState.bind(window.history);
+let pendingHref: string | null = null;
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
@@ -32,11 +33,26 @@ export function setSearch(next: string): void {
   notify();
 }
 
-export const replace = vi.fn();
+export const replace = vi.fn((...args: [href: string, options?: { scroll?: boolean }]) => {
+  pendingHref = args[0];
+});
 export const refresh = vi.fn();
 export const push = vi.fn();
 
-/** The last URL the component wrote with history.replaceState. */
+/** Lands the last router.replace navigation, as the server response would. */
+export function commitNavigation(): void {
+  if (pendingHref === null) return;
+  realReplaceState(null, "", pendingHref);
+  pendingHref = null;
+  notify();
+}
+
+/** The last href passed to router.replace. */
+export function lastNavigation(): string | undefined {
+  return replace.mock.lastCall?.[0];
+}
+
+/** The last URL written with history.replaceState. */
 export function lastHref(): string | undefined {
   const url = historyReplace.mock.lastCall?.[2];
   return url === undefined || url === null ? undefined : String(url);
@@ -44,6 +60,7 @@ export function lastHref(): string | undefined {
 
 export function resetNavigation(): void {
   realReplaceState(null, "", "/");
+  pendingHref = null;
   historyReplace.mockClear();
   replace.mockClear();
   refresh.mockClear();

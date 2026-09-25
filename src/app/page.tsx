@@ -32,7 +32,7 @@ export default async function DashboardPage() {
 
       <Suspense fallback={null}>
         {requirements.ok ? (
-          <RequirementsTable requirements={requirements.data} />
+          <RequirementsTable requirements={requirements.data} total={requirements.data.length} />
         ) : (
           <ErrorPanel title="Couldn't load requirements" error={requirements.error} />
         )}
@@ -42,7 +42,7 @@ export default async function DashboardPage() {
         {tasksError ? (
           <ErrorPanel title="Couldn't load tasks" error={tasksError} />
         ) : tasks.ok && orphanTasks.ok ? (
-          <TasksPanel tasks={tasks.data} orphanTaskIds={orphanTasks.data.map((t) => t.id)} />
+          <TasksPanel tasks={tasks.data} total={tasks.data.length} orphanTaskIds={orphanTasks.data.map((t) => t.id)} />
         ) : null}
       </Suspense>
 

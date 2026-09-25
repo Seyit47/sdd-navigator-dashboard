@@ -1,56 +1,67 @@
 "use client";
-// @req SCD-UI-005, SCD-FLT-003, SCD-STATE-003, SCD-A11Y-001
+// @req SCD-UI-005, SCD-UI-007, SCD-FLT-003, SCD-STATE-003, SCD-A11Y-001
 import Link from "next/link";
 import type { Task } from "@/lib/api";
-import { formatTaskStatus } from "@/lib/dashboard/format";
+import { formatLabel } from "@/lib/dashboard/format";
 import { TASK_STATUSES } from "@/lib/dashboard/options";
-import { applyTaskQuery, serializeDashboardQuery, toggleValue } from "@/lib/dashboard/query";
-import { FilterChips } from "./FilterChips";
+import { applyTaskQuery, serializeDashboardQuery } from "@/lib/dashboard/query";
+import { Card } from "./Card";
+import { EmptyState } from "./EmptyState";
+import { SegmentedFilter } from "./SegmentedFilter";
 import { useDashboardQuery } from "./useDashboardQuery";
 
 const HEADERS = ["ID", "Requirement", "Title", "Status", "Assignee"];
 
-export function TasksPanel({ tasks, orphanTaskIds }: { tasks: Task[]; orphanTaskIds: string[] }) {
-  const { query, update } = useDashboardQuery();
+export function TasksPanel({ tasks, total, orphanTaskIds }: { tasks: Task[]; total: number; orphanTaskIds: string[] }) {
+  const { query, isPending, update } = useDashboardQuery();
   const rows = applyTaskQuery(tasks, query);
   const orphans = new Set(orphanTaskIds);
   const linkQuery = serializeDashboardQuery(query);
 
   return (
-    <section aria-labelledby="tasks-heading" className="rounded-lg border border-hairline bg-surface p-4">
-      <h2 id="tasks-heading" className="text-base font-semibold">
-        Tasks
-      </h2>
-      <div className="mt-3">
-        <FilterChips
+    <Card
+      titleId="tasks-heading"
+      title="Tasks"
+      busy={isPending}
+      meta={
+        <p aria-live="polite" className="text-sm text-muted">
+          Showing {rows.length} of {total} tasks
+        </p>
+      }
+    >
+      <div className="mt-4">
+        <SegmentedFilter
           label="Filter by task status"
           legend="Status"
           options={TASK_STATUSES}
           selected={query.taskStatuses}
-          onToggle={(status) => update({ taskStatuses: toggleValue(query.taskStatuses, status, TASK_STATUSES) })}
-          format={formatTaskStatus}
+          onChange={(taskStatuses) => update({ taskStatuses })}
+          format={formatLabel}
         />
       </div>
 
-      <p aria-live="polite" className="mt-3 text-sm text-ink-2">
-        Showing {rows.length} of {tasks.length} tasks
-      </p>
-
       {rows.length === 0 ? (
-        <div className="mt-3 rounded-md border border-dashed border-hairline p-6 text-center">
-          <p>No tasks match this filter.</p>
-          <button type="button" onClick={() => update({ taskStatuses: [] })} className="mt-2 text-sm text-link underline">
-            Clear filter
-          </button>
-        </div>
+        <EmptyState
+          title="No tasks match this filter"
+          hint="Choose another status or show all tasks."
+          action={
+            <button
+              type="button"
+              onClick={() => update({ taskStatuses: [] })}
+              className="rounded-lg bg-surface-2 px-3 py-1.5 text-sm font-medium text-ink hover:text-ink-2"
+            >
+              Clear filter
+            </button>
+          }
+        />
       ) : (
-        <div className="relative mt-2 overflow-x-auto">
+        <div className="relative mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Tasks</caption>
-            <thead className="text-ink-2">
-              <tr>
+            <thead>
+              <tr className="text-xs text-muted">
                 {HEADERS.map((header) => (
-                  <th key={header} scope="col" className="px-2 py-2 font-semibold">
+                  <th key={header} scope="col" className="px-3 py-2 font-medium">
                     {header}
                   </th>
                 ))}
@@ -63,14 +74,16 @@ export function TasksPanel({ tasks, orphanTaskIds }: { tasks: Task[]; orphanTask
                   <tr
                     key={t.id}
                     data-orphan={orphan || undefined}
-                    className={`border-t border-grid ${orphan ? "bg-orphan-tint" : ""}`}
+                    className={`border-t border-hairline ${orphan ? "bg-critical-tint" : "transition-colors hover:bg-plane"}`}
                   >
-                    <td className="px-2 py-2 font-mono whitespace-nowrap">{t.id}</td>
-                    <td className="px-2 py-2 font-mono whitespace-nowrap">
+                    <td className="px-3 py-3 font-mono whitespace-nowrap">{t.id}</td>
+                    <td className="px-3 py-3 font-mono whitespace-nowrap">
                       {orphan ? (
                         <>
                           {t.requirementId}{" "}
-                          <span className="ml-1 rounded border border-critical px-1 font-sans text-xs text-ink">⚠ orphan</span>
+                          <span className="ml-1 rounded-full bg-surface px-2 py-0.5 font-sans text-xs font-medium text-ink">
+                            ⚠ Orphan
+                          </span>
                         </>
                       ) : (
                         <Link
@@ -81,9 +94,9 @@ export function TasksPanel({ tasks, orphanTaskIds }: { tasks: Task[]; orphanTask
                         </Link>
                       )}
                     </td>
-                    <td className="px-2 py-2">{t.title}</td>
-                    <td className="px-2 py-2 whitespace-nowrap">{formatTaskStatus(t.status)}</td>
-                    <td className="px-2 py-2">
+                    <td className="px-3 py-3">{t.title}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-ink-2">{formatLabel(t.status)}</td>
+                    <td className="px-3 py-3 text-ink-2">
                       {t.assignee ?? (
                         <>
                           <span aria-hidden="true">—</span>
@@ -98,6 +111,6 @@ export function TasksPanel({ tasks, orphanTaskIds }: { tasks: Task[]; orphanTask
           </table>
         </div>
       )}
-    </section>
+    </Card>
   );
 }
