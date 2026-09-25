@@ -49,13 +49,13 @@ NEXT_PUBLIC_API_URL=https://api.pdd.foreachpartners.com pnpm build && pnpm start
 | `pnpm lint` | ESLint |
 | `pnpm check:coverage` | Self-validation: compares `requirements.yaml` with the `@req` annotations in the code and exits with code 1 if any requirement is unimplemented |
 | `pnpm check:browser` | Real-Chrome checks after a build: phone layout, filter feedback, server-side filtering, themes, console errors (`BASE_URL=… pnpm check:browser` checks a deployment) |
-| `pnpm validate` | Typecheck, lint, tests, build and coverage check, stopping at the first failure |
+| `pnpm validate` | Typecheck, lint, tests, build and the strict coverage check (no missing or partially covered requirements, no orphans), stopping at the first failure |
 
 ## Specification-driven workflow
 
 `requirements.yaml` is the single source of truth. Code that implements or tests a requirement carries a comment such as `// @req SCD-UI-003`; files named `*.test.*` count as tests. `pnpm check:coverage` prints a report (covered / partial / missing, plus orphan annotations) and fails when any requirement has no implementation. Pass `--tasks <file.json>` to also report orphan tasks.
 
-Git hooks (Husky): pre-commit runs tests and the build; pre-push adds the type check, lint and the coverage check. Commit messages follow Conventional Commits, and `feat`/`fix`/`refactor`/`perf`/`test` commits name the requirements they change in a `Refs: SCD-…` footer (enforced by commitlint).
+Git hooks (Husky): pre-commit runs tests and the build; pre-push adds the type check, lint and the coverage check. Commit messages follow Conventional Commits, and every commit names the requirements it changes in a `Refs: SCD-…` footer (enforced by commitlint in the hook and, for every commit of a pull request, in CI).
 
 ## Deployment
 

@@ -19,7 +19,15 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function check(name, ok, detail) {
   console.log(`${ok ? "✓" : "✗"} ${name}${ok ? "" : ` — ${detail}`}`);
-  if (!ok) failures.push(name);
+  if (!ok) {
+    failures.push(name);
+    // On GitHub Actions, also report the failure as an annotation, which is visible on the
+    // pull request and through the public API without access to the job log.
+    if (process.env.GITHUB_ACTIONS === "true") {
+      const message = `${name} — ${detail}`.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A");
+      console.log(`::error title=Browser check failed::${message}`);
+    }
+  }
 }
 
 async function waitForHttp(url, timeoutMs) {
@@ -37,7 +45,10 @@ async function waitForHttp(url, timeoutMs) {
 }
 
 async function startServer() {
-  if (process.env.BASE_URL) return;
+  if (process.env.BASE_URL) {
+    await waitForHttp(`${base}/`, 30_000);
+    return;
+  }
   const server = spawn("node_modules/.bin/next", ["start", "-p", String(PORT)], { stdio: "ignore" });
   children.push(server);
   await waitForHttp(`${base}/`, 30_000);
@@ -119,10 +130,12 @@ async function main() {
     // new URL; the theme toggle's label changes only after hydration, which signals that
     // React has attached its event handlers.
     const url = JSON.stringify(`${base}${path}`);
-    return waitFor(
+    const loaded = await waitFor(
       `location.href === ${url} && document.readyState === "complete" && !!document.querySelector('header button[aria-label^="Switch to"]')`,
       20_000,
     );
+    if (!loaded) check(`${path} loads and hydrates`, false, `still at ${await evaluate("location.href")}`);
+    return loaded;
   };
   const region = `document.querySelector('[aria-labelledby="requirements-heading"]')`;
 
