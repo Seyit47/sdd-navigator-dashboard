@@ -1,6 +1,6 @@
 // @req SCD-UI-001, SCD-UI-002, SCD-A11Y-001
 import { STATUS_PRESENTATION, share } from "@/lib/dashboard/coverage";
-import { formatPercent } from "@/lib/dashboard/format";
+import { formatLabel, formatPercent } from "@/lib/dashboard/format";
 import { COVERAGE_STATUSES } from "@/lib/dashboard/options";
 
 export function CoverageBar({
@@ -34,7 +34,7 @@ export function CoverageBar({
               <span
                 key={row.status}
                 data-status={row.status}
-                title={`${STATUS_PRESENTATION[row.status].label}: ${row.count} of ${total} (${formatPercent(share(row.count, total))})`}
+                title={`${formatLabel(row.status)}: ${row.count} of ${total} (${formatPercent(share(row.count, total))})`}
                 className="h-full rounded-full"
                 style={{ flexGrow: row.count, flexBasis: 0, backgroundColor: STATUS_PRESENTATION[row.status].color }}
               />

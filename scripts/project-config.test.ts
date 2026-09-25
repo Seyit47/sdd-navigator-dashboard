@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
   scripts: Record<string, string>;
+  homepage?: string;
   engines?: Record<string, string>;
 };
 const commands = (file: string) =>
@@ -45,6 +46,7 @@ describe("deterministic checks", () => {
     expect(ci).toContain("run: pnpm check:browser");
     expect(ci).toContain("run: pnpm test:contract");
     expect(ci).toMatch(/commitlint --from .*pull_request\.base\.sha/);
+    expect(ci).toContain("node scripts/check-commit-refs.ts");
   });
 
   it("requires a Node version that runs TypeScript natively", () => {
@@ -90,12 +92,19 @@ describe("per-test traceability", () => {
 
 // @req SCD-DEP-002, SCD-VAL-002
 describe("deployment verification", () => {
-  it("runs the browser checks against every successful Production deployment", () => {
+  it("runs the browser checks against the public Production URL after each deployment", () => {
     const workflow = readFileSync(".github/workflows/deployment-check.yml", "utf8");
     expect(workflow).toMatch(/^\s*deployment_status:/m);
     expect(workflow).toContain("github.event.deployment_status.environment == 'Production'");
     expect(workflow).toContain("run: pnpm check:browser");
-    expect(workflow).toContain("BASE_URL: ${{ github.event.deployment_status.environment_url }}");
+    // The per-deployment URL sits behind Vercel Deployment Protection; the public alias does not.
+    expect(workflow).not.toContain("environment_url");
+    expect(workflow).toContain("pkg.homepage");
+    expect(workflow).toContain("EXPECT_DATA_MODE: api");
+  });
+
+  it("keeps the public Production URL in one place", () => {
+    expect(pkg.homepage).toBe("https://sdd-navigator-dashboard-theta.vercel.app");
   });
 
   it("share one setup action on Node 24 action versions", () => {
@@ -122,12 +131,32 @@ describe("deliverables", () => {
 
   it("the README links the live deployment and the repository", () => {
     const readme = readFileSync("README.md", "utf8");
-    expect(readme).toContain("https://sdd-navigator-dashboard-theta.vercel.app");
+    expect(readme).toContain(pkg.homepage);
     expect(readme).toContain("https://github.com/Seyit47/sdd-navigator-dashboard");
   });
 
   it("the README describes the typecheck script as it is defined", () => {
     expect(readFileSync("README.md", "utf8")).toContain(pkg.scripts.typecheck);
+  });
+});
+
+// @req SCD-VAL-003, SCD-VAL-001
+describe("working rules", () => {
+  it("CLAUDE.md states the spec-driven development rules and checks", () => {
+    const rules = readFileSync("CLAUDE.md", "utf8");
+    for (const text of [
+      "requirements.yaml",
+      "@req",
+      "pnpm check:coverage --strict",
+      "pnpm validate",
+      "Refs:",
+      "Rebase and merge",
+      "failing test",
+      "docs/superpowers/specs",
+      "@/lib/api",
+    ]) {
+      expect(rules).toContain(text);
+    }
   });
 });
 
