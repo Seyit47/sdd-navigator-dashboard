@@ -52,7 +52,7 @@ function Segment({ pressed, onClick, children }: { pressed: boolean; onClick: ()
       aria-pressed={pressed}
       onClick={onClick}
       className={`rounded-md px-2.5 py-1 text-sm transition-colors ${
-        pressed ? "bg-surface font-medium text-ink shadow-card" : "text-ink-2 hover:text-ink"
+        pressed ? "surface-raised font-medium text-ink" : "text-ink-2 hover:text-ink"
       }`}
     >
       {children}

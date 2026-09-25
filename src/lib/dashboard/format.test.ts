@@ -1,8 +1,9 @@
 // @req SCD-UI-001, SCD-UI-002, SCD-UI-004
 import { describe, expect, it } from "vitest";
 import { STATUS_PRESENTATION, share } from "./coverage";
-import { formatDate, formatDateTime, formatLabel, formatPercent, formatTaskStatus } from "./format";
+import { formatDate, formatDateTime, formatLabel, formatPercent } from "./format";
 
+// @req SCD-UI-003, SCD-UI-004
 describe("formatDate", () => {
   it("formats an ISO timestamp as a UTC date", () => {
     expect(formatDate("2026-03-01T10:15:00Z")).toBe("1 Mar 2026");
@@ -17,12 +18,14 @@ describe("formatDate", () => {
   });
 });
 
+// @req SCD-UI-001
 describe("formatDateTime", () => {
   it("formats date, 24-hour time and the UTC suffix", () => {
     expect(formatDateTime("2026-03-01T10:15:00Z")).toBe("1 Mar 2026, 10:15 UTC");
   });
 });
 
+// @req SCD-UI-001
 describe("formatPercent", () => {
   it.each([
     [62.5, "62.5%"],
@@ -34,6 +37,7 @@ describe("formatPercent", () => {
   });
 });
 
+// @req SCD-UI-002
 describe("share", () => {
   it.each([
     [5, 8, 62.5],
@@ -44,12 +48,7 @@ describe("share", () => {
   });
 });
 
-describe("formatTaskStatus", () => {
-  it("replaces underscores with spaces", () => {
-    expect(["open", "in_progress", "done"].map((s) => formatTaskStatus(s))).toEqual(["open", "in progress", "done"]);
-  });
-});
-
+// @req SCD-UI-002, SCD-UI-004
 describe("STATUS_PRESENTATION", () => {
   it("maps each coverage status to its assessment label and icon", () => {
     expect(
@@ -62,6 +61,7 @@ describe("STATUS_PRESENTATION", () => {
   });
 });
 
+// @req SCD-UI-005, SCD-FLT-001
 describe("formatLabel", () => {
   it("capitalises and replaces underscores", () => {
     expect(["covered", "in_progress", "FR"].map((v) => formatLabel(v))).toEqual(["Covered", "In progress", "FR"]);

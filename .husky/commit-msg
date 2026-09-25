@@ -1,1 +1,2 @@
+# @req SCD-VAL-003
 pnpm exec commitlint --edit "$1"

@@ -16,6 +16,7 @@ beforeEach(() => {
   delete document.documentElement.dataset.theme;
 });
 
+// @req SCD-THEME-001, SCD-A11Y-002
 describe("ThemeToggle", () => {
   it("follows the OS preference on first visit", () => {
     render(<ThemeToggle />);

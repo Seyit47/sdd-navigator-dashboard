@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { axeViolations } from "@/test/axe";
 import { Header } from "./Header";
 
+// @req SCD-API-001, SCD-A11Y-002
 describe("Header", () => {
   it("shows the title, the active data mode and the theme toggle", () => {
     render(<Header />);

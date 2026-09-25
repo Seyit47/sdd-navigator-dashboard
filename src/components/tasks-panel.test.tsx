@@ -39,6 +39,7 @@ const row = (id: string) => screen.getByRole("row", { name: new RegExp(`^${id}\\
 const segment = (name: string) =>
   within(screen.getByRole("group", { name: "Filter by task status" })).getByRole("button", { name });
 
+// @req SCD-UI-005, SCD-FLT-003, SCD-STATE-003, SCD-UI-007, SCD-A11Y-002
 describe("TasksPanel", () => {
   it("renders every task with its columns", () => {
     renderPanel();

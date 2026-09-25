@@ -1,0 +1,17 @@
+# @req SCD-VAL-002
+# Shared job setup: pnpm (version from package.json), Node 24 with the pnpm cache, dependencies.
+name: Setup
+description: Install pnpm, Node.js 24 and the project's dependencies.
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v6
+
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+        cache: pnpm
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile

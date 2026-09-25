@@ -237,3 +237,11 @@
     `pnpm validate` MUST run the type check (tsc --noEmit), ESLint, all tests,
     the production build and the coverage check, stopping at the first failure,
     and CI MUST run it on every pull request and on pushes to main.
+
+- id: SCD-VAL-003
+  type: AR
+  title: Traceable commit messages
+  description: >-
+    Commit messages MUST follow Conventional Commits and every commit except a
+    revert MUST name the requirements it changes in a "Refs: SCD-..." footer;
+    the commit-msg hook and CI MUST reject non-conforming messages.

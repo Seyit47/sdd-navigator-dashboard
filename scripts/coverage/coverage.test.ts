@@ -20,16 +20,17 @@ function annotation(reqId: string, kind: AnnotationKind): FoundAnnotation {
   return { file: kind === "test" ? "src/a.test.ts" : "src/a.ts", line: 1, reqId, kind };
 }
 
+// @req SCD-VAL-001
 describe("parseRequirements", () => {
   it("parses id and title, ignoring other fields", () => {
     const text = "- id: FR-A-001\n  type: FR\n  title: First\n  description: >-\n    MUST do it.\n";
-    expect(parseRequirements(text)).toEqual({ ok: true, value: [{ id: "FR-A-001", title: "First" }] });
+    expect(parseRequirements(text)).toEqual({ ok: true, data: [{ id: "FR-A-001", title: "First" }] });
   });
 
   it("parses this repository's requirements.yaml", () => {
     const result = parseRequirements(readFileSync("requirements.yaml", "utf8"));
-    expect(result.ok && result.value.length).toBeGreaterThanOrEqual(19);
-    expect(result.ok && result.value[0].id).toBe("SCD-API-001");
+    expect(result.ok && result.data.length).toBeGreaterThanOrEqual(19);
+    expect(result.ok && result.data[0].id).toBe("SCD-API-001");
   });
 
   it.each(["", "   \n"])("rejects an empty file %j", (text) => {
@@ -78,11 +79,12 @@ describe("parseRequirements", () => {
   });
 });
 
+// @req SCD-VAL-001
 describe("parseTasks", () => {
   it("parses tasks, ignoring extra fields", () => {
     const result = parseTasks(readFileSync("data/tasks.json", "utf8"));
-    expect(result.ok && result.value).toHaveLength(6);
-    expect(result.ok && result.value[5]).toEqual({ id: "TASK-006", requirementId: "FR-EXPORT-001", title: "Add CSV export" });
+    expect(result.ok && result.data).toHaveLength(6);
+    expect(result.ok && result.data[5]).toEqual({ id: "TASK-006", requirementId: "FR-EXPORT-001", title: "Add CSV export" });
   });
 
   it("rejects an empty file", () => {
@@ -106,6 +108,7 @@ describe("parseTasks", () => {
   });
 });
 
+// @req SCD-VAL-001
 describe("classifyFile", () => {
   it.each([
     ["src/a.test.ts", "test"],
@@ -118,6 +121,7 @@ describe("classifyFile", () => {
   });
 });
 
+// @req SCD-VAL-001
 describe("extractAnnotations", () => {
   it("finds a single annotation with its line number", () => {
     expect(extractAnnotations("src/a.ts", `import x from "y";\n// ${TAG} FR-A-001\n`)).toEqual([
@@ -160,6 +164,7 @@ describe("extractAnnotations", () => {
   });
 });
 
+// @req SCD-VAL-001
 describe("computeCoverage", () => {
   it("reports 0% when nothing is annotated", () => {
     const result = computeCoverage(requirements, []);
@@ -220,6 +225,7 @@ describe("computeCoverage", () => {
   });
 });
 
+// @req SCD-VAL-001
 describe("formatReport", () => {
   it("prints rows, orphans and the summary line", () => {
     const report = formatReport(

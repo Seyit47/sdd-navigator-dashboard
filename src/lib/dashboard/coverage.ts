@@ -1,7 +1,7 @@
 // @req SCD-UI-002, SCD-UI-004, SCD-A11Y-001
 import type { CoverageStatus } from "@/lib/api";
 
-export interface StatusPresentation {
+interface StatusPresentation {
   /** Short label used in the summary bars. */
   label: string;
   /** Coverage assessment shown on the detail page. */

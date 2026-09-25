@@ -10,6 +10,7 @@ function stubFetch(body: string, status = 200) {
   return vi.fn<typeof fetch>(async () => new Response(body, { status }));
 }
 
+// @req SCD-API-001
 describe("buildUrl", () => {
   it("joins base, path and defined query params", () => {
     expect(buildUrl(BASE, "/requirements", { type: "FR", status: undefined, order: "desc" })).toBe(
@@ -26,6 +27,7 @@ describe("buildUrl", () => {
   });
 });
 
+// @req SCD-API-001, SCD-API-003
 describe("httpTransport", () => {
   it("sends method, Accept header and a timeout signal", async () => {
     const fetchImpl = stubFetch("{}", 202);

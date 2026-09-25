@@ -1,4 +1,6 @@
-# Deterministic checks (SCD-VAL-002): type check, lint, tests, build and the requirement coverage gate.
+# @req SCD-VAL-002, SCD-VAL-003
+# Deterministic checks: commit messages, type check, lint, tests, build, strict coverage gate,
+# real-browser checks and the live API contract.
 name: CI
 
 on:
@@ -13,17 +15,25 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
         with:
-          node-version: 24
-          cache: pnpm
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup
+
+      # Hooks can be skipped with --no-verify; CI checks every commit of the pull request.
+      - name: Commit messages
+        if: github.event_name == 'pull_request'
+        run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
 
       - name: Validate
         run: pnpm validate
+
+      # Layout, pending feedback, server-side filtering and theming in real Chrome
+      # (preinstalled on GitHub's Ubuntu runners), against the build from `validate`.
+      - name: Browser checks
+        run: pnpm check:browser
+
+      # The live SDD Navigator API still matches the schemas and honours the filter params.
+      - name: Live API contract
+        run: pnpm test:contract

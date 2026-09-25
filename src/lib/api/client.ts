@@ -22,8 +22,9 @@ import {
 } from "./schemas";
 import type { Transport, TransportRequest, TransportResponse } from "./transport";
 
-export type SortField = "id" | "updatedAt";
-export type SortOrder = "asc" | "desc";
+import type { SortField, SortOrder } from "./sort";
+
+export type { SortField, SortOrder } from "./sort";
 
 export interface RequirementFilters {
   type?: RequirementType;

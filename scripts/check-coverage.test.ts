@@ -30,6 +30,7 @@ afterEach(() => {
   for (const root of created.splice(0)) rmSync(root, { recursive: true, force: true });
 });
 
+// @req SCD-VAL-001
 describe("check-coverage CLI", () => {
   it("exits 0 and prints the report when every requirement is implemented", () => {
     const root = project({
@@ -40,6 +41,11 @@ describe("check-coverage CLI", () => {
     const { code, stdout } = run(root);
     expect(code).toBe(0);
     expect(stdout).toContain("Coverage: 50% (1/2 covered, 1 partial, 0 missing)");
+  });
+
+  it("runs without Node warnings", () => {
+    const root = project({ "requirements.yaml": REQUIREMENTS, "src/a.ts": `// ${TAG} FR-A-001, FR-A-002\n` });
+    expect(run(root).stderr).not.toMatch(/Warning/);
   });
 
   it("exits 1 and names the requirements that are not implemented", () => {
@@ -60,6 +66,28 @@ describe("check-coverage CLI", () => {
     const { code, stdout } = run(root);
     expect(code).toBe(0);
     expect(stdout).not.toContain("Orphan annotations");
+  });
+
+  it("scans workflow files", () => {
+    const root = project({
+      "requirements.yaml": REQUIREMENTS,
+      "src/a.ts": `// ${TAG} FR-A-001\n`,
+      ".github/workflows/ci.yml": `# ${TAG} FR-A-002\non: push\n`,
+    });
+    expect(run(root).code).toBe(0);
+  });
+
+  it("--strict fails on partially covered requirements and on orphans", () => {
+    const partial = project({ "requirements.yaml": REQUIREMENTS, "src/a.ts": `// ${TAG} FR-A-001, FR-A-002\n` });
+    expect(run(partial, "--strict")).toMatchObject({ code: 1, stderr: expect.stringContaining("2 requirement(s) not fully covered") });
+    const orphan = project({
+      "requirements.yaml": REQUIREMENTS,
+      "src/a.ts": `// ${TAG} FR-A-001, FR-A-002, FR-Z-999\n`,
+      "src/a.test.ts": `// ${TAG} FR-A-001, FR-A-002\n`,
+    });
+    expect(run(orphan, "--strict")).toMatchObject({ code: 1, stderr: expect.stringContaining("1 orphan annotation(s)") });
+    const clean = project({ "requirements.yaml": REQUIREMENTS, "src/a.ts": `// ${TAG} FR-A-001, FR-A-002\n`, "src/a.test.ts": `// ${TAG} FR-A-001, FR-A-002\n` });
+    expect(run(clean, "--strict").code).toBe(0);
   });
 
   it("reports orphan annotations and orphan tasks", () => {
