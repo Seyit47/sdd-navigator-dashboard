@@ -9,7 +9,7 @@ const commitlint = (message: string) =>
 
 // @req SCD-VAL-003
 describe("requirement-reference commit rule", () => {
-  it.each(["feat", "fix", "refactor", "perf", "test"])("rejects a %s commit without a Refs footer", (type) => {
+  it.each(["feat", "fix", "refactor", "perf", "test", "docs", "chore", "ci", "build", "style"])("rejects a %s commit without a Refs footer", (type) => {
     expect(rule(type, `${type}(ui): change something`)[0]).toBe(false);
   });
 
@@ -22,8 +22,8 @@ describe("requirement-reference commit rule", () => {
     expect(rule("feat", "feat(ui): add x\n\nRefs: SCD-UI-3")[0]).toBe(false);
   });
 
-  it.each(["docs", "chore", "ci", "build", "style", "revert"])("does not require references for %s commits", (type) => {
-    expect(rule(type, `${type}: tidy`)[0]).toBe(true);
+  it("does not require references for reverts", () => {
+    expect(rule("revert", "revert: undo x")[0]).toBe(true);
   });
 
   it("is wired into the commitlint config", () => {

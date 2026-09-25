@@ -68,6 +68,28 @@ describe("check-coverage CLI", () => {
     expect(stdout).not.toContain("Orphan annotations");
   });
 
+  it("scans workflow files", () => {
+    const root = project({
+      "requirements.yaml": REQUIREMENTS,
+      "src/a.ts": `// ${TAG} FR-A-001\n`,
+      ".github/workflows/ci.yml": `# ${TAG} FR-A-002\non: push\n`,
+    });
+    expect(run(root).code).toBe(0);
+  });
+
+  it("--strict fails on partially covered requirements and on orphans", () => {
+    const partial = project({ "requirements.yaml": REQUIREMENTS, "src/a.ts": `// ${TAG} FR-A-001, FR-A-002\n` });
+    expect(run(partial, "--strict")).toMatchObject({ code: 1, stderr: expect.stringContaining("2 requirement(s) not fully covered") });
+    const orphan = project({
+      "requirements.yaml": REQUIREMENTS,
+      "src/a.ts": `// ${TAG} FR-A-001, FR-A-002, FR-Z-999\n`,
+      "src/a.test.ts": `// ${TAG} FR-A-001, FR-A-002\n`,
+    });
+    expect(run(orphan, "--strict")).toMatchObject({ code: 1, stderr: expect.stringContaining("1 orphan annotation(s)") });
+    const clean = project({ "requirements.yaml": REQUIREMENTS, "src/a.ts": `// ${TAG} FR-A-001, FR-A-002\n`, "src/a.test.ts": `// ${TAG} FR-A-001, FR-A-002\n` });
+    expect(run(clean, "--strict").code).toBe(0);
+  });
+
   it("reports orphan annotations and orphan tasks", () => {
     const root = project({
       "requirements.yaml": REQUIREMENTS,

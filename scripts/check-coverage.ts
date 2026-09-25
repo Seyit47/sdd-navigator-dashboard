@@ -1,7 +1,8 @@
 // @req SCD-VAL-001
 // Self-validation: compares requirements.yaml with the @req annotations in the source tree.
-// Usage: node scripts/check-coverage.ts [--root <dir>] [--tasks <file.json>]
-// Exit codes: 0 = every requirement implemented, 1 = some requirement missing, 2 = unreadable input.
+// Usage: node scripts/check-coverage.ts [--root <dir>] [--tasks <file.json>] [--strict]
+// Exit codes: 0 = every requirement implemented, 1 = some requirement missing (with --strict also:
+// partially covered, or orphan annotations/tasks), 2 = unreadable input.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
@@ -11,10 +12,10 @@ import { parseRequirements, parseTasks } from "./coverage/parse.ts";
 import { formatReport } from "./coverage/report.ts";
 import type { FoundAnnotation, TaskEntry } from "./coverage/types.ts";
 
-const USAGE = "usage: node scripts/check-coverage.ts [--root <dir>] [--tasks <file.json>]";
-const SOURCE_DIRS = ["src", "scripts", ".husky"];
+const USAGE = "usage: node scripts/check-coverage.ts [--root <dir>] [--tasks <file.json>] [--strict]";
+const SOURCE_DIRS = ["src", "scripts", ".husky", ".github"];
 const SKIP_DIRS = new Set(["node_modules", ".next", "_"]);
-const SOURCE_FILE = /\.(?:[cm]?[jt]sx?|css)$/;
+const SOURCE_FILE = /\.(?:[cm]?[jt]sx?|css|ya?ml)$/;
 const ROOT_CONFIG = /\.config\.[cm]?[jt]s$/;
 
 function walk(dir: string, acceptEveryFile: boolean, out: string[]): void {
@@ -47,9 +48,9 @@ function fail(message: string): number {
 }
 
 function main(argv: string[]): number {
-  let values: { root?: string; tasks?: string };
+  let values: { root?: string; tasks?: string; strict?: boolean };
   try {
-    ({ values } = parseArgs({ args: argv, options: { root: { type: "string" }, tasks: { type: "string" } } }));
+    ({ values } = parseArgs({ args: argv, options: { root: { type: "string" }, tasks: { type: "string" }, strict: { type: "boolean" } } }));
   } catch (error) {
     return fail(`${error instanceof Error ? error.message : String(error)}\n${USAGE}`);
   }
@@ -81,6 +82,18 @@ function main(argv: string[]): number {
       `\ncheck-coverage: ${missing.length} requirement(s) not implemented: ${missing.map((r) => r.id).join(", ")}`,
     );
     return 1;
+  }
+  if (values.strict) {
+    const partial = result.requirements.filter((r) => r.status === "partial");
+    const problems = [
+      partial.length > 0 ? `${partial.length} requirement(s) not fully covered: ${partial.map((r) => r.id).join(", ")}` : "",
+      result.orphanAnnotations.length > 0 ? `${result.orphanAnnotations.length} orphan annotation(s)` : "",
+      result.orphanTasks.length > 0 ? `${result.orphanTasks.length} orphan task(s)` : "",
+    ].filter(Boolean);
+    if (problems.length > 0) {
+      console.error(`\ncheck-coverage --strict: ${problems.join("; ")}`);
+      return 1;
+    }
   }
   return 0;
 }
