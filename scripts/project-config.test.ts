@@ -63,7 +63,7 @@ describe("traceability", () => {
         (f) =>
           /^(src|scripts)\/.+\.(?:[cm]?[jt]sx?|css)$/.test(f) ||
           /^\.husky\/[^_/][^/]*$/.test(f) ||
-          /^[^/]+\.config\.[cm]?[jt]s$/.test(f) ||
+          /^[^/]+\.(?:config|setup)\.[cm]?[jt]s$/.test(f) ||
           /^\.github\/(?:workflows|actions)\/.+\.ya?ml$/.test(f),
       );
     expect(files.length).toBeGreaterThan(40);
