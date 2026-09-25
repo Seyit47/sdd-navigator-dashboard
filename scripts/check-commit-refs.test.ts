@@ -66,6 +66,26 @@ describe("check-commit-refs", () => {
     expect(run(dir, "0000000000000000000000000000000000000000", "HEAD").status).toBe(0);
   });
 
+  it("checks the whole history when the base commit is unknown (history rewritten by a force-push)", () => {
+    const { dir, commit } = repo();
+    commit("chore: base\n\nRefs: SCD-VAL-001");
+    commit("feat: x\n\nRefs: SCD-UI-001");
+    const unknownBase = "1234567890abcdef1234567890abcdef12345678";
+    const ok = run(dir, unknownBase, "HEAD");
+    expect(ok.status).toBe(0);
+    expect(ok.stdout).toContain("not in this history");
+    expect(ok.stdout).toContain("2 commit(s) reference requirements");
+  });
+
+  it("still fails for an unknown base when an old commit lacks references", () => {
+    const { dir, commit } = repo();
+    commit("chore: base without refs");
+    commit("feat: x\n\nRefs: SCD-UI-001");
+    const result = run(dir, "1234567890abcdef1234567890abcdef12345678", "HEAD");
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("chore: base without refs");
+  });
+
   it("exits 2 with usage when arguments are missing", () => {
     const { dir } = repo();
     expect(run(dir).status).toBe(2);
