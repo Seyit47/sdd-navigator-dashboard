@@ -1,6 +1,7 @@
 // @req SCD-API-001, SCD-THEME-001
 import Link from "next/link";
 import { dataMode } from "@/lib/api";
+import { DATA_MODE_LABELS } from "@/lib/api/mode-labels";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
@@ -11,7 +12,7 @@ export function Header() {
           <Link href="/">SDD Navigator</Link>
         </h1>
         <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-ink-2">
-          {dataMode === "api" ? "Live API" : "Mock data"}
+          {DATA_MODE_LABELS[dataMode]}
         </span>
         <div className="ml-auto">
           <ThemeToggle />
