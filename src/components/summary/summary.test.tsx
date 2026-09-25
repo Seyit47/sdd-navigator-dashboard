@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// @req SCD-UI-001, SCD-UI-002, SCD-A11Y-002
+// @req SCD-UI-001, SCD-UI-002, SCD-UI-007, SCD-A11Y-002
 import { render, screen, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Stats } from "@/lib/api";
@@ -13,49 +13,44 @@ beforeAll(async () => {
   ({ stats } = await loadFixtures());
 });
 
-const tile = (name: string) => within(screen.getByRole("group", { name }));
-const bar = (container: HTMLElement, status: string) =>
-  container.querySelector(`[data-status="${status}"] [data-bar]`);
+const card = (name: string) => within(screen.getByRole("group", { name }));
+const segment = (container: HTMLElement, status: string) => container.querySelector(`[data-status="${status}"]`);
 
 describe("SummaryPanel", () => {
+  it("shows the overview heading and the last scan", () => {
+    render(<SummaryPanel stats={stats} />);
+    expect(screen.getByRole("heading", { level: 2, name: "Coverage overview" })).toBeInTheDocument();
+    expect(screen.getByText("1 Mar 2026, 10:15 UTC").closest("p")).toHaveTextContent("Last scan 1 Mar 2026, 10:15 UTC");
+  });
+
   it("shows requirement, annotation and task counts", () => {
     render(<SummaryPanel stats={stats} />);
-    expect(tile("Requirements").getByText("8")).toBeInTheDocument();
-    expect(tile("Requirements").getByText("FR 6 · AR 2")).toBeInTheDocument();
-    expect(tile("Coverage").getByText("62.5%")).toBeInTheDocument();
-    expect(tile("Coverage").getByText("5 of 8 fully covered")).toBeInTheDocument();
-    expect(tile("Orphans").getByText("⚠ 3")).toBeInTheDocument();
-    expect(tile("Orphans").getByText("2 of 16 annotations · 1 of 6 tasks")).toBeInTheDocument();
-    expect(tile("Orphans").getByRole("link", { name: "Review orphans" })).toHaveAttribute("href", "#orphans");
-    expect(tile("Last scan").getByText("1 Mar 2026, 10:15 UTC")).toBeInTheDocument();
+    expect(card("Coverage").getByText("62.5%")).toBeInTheDocument();
+    expect(card("Coverage").getByText("5 of 8 requirements fully covered")).toBeInTheDocument();
+    expect(card("Requirements").getByText("8")).toBeInTheDocument();
+    expect(card("Requirements").getByText("6 FR · 2 AR")).toBeInTheDocument();
+    expect(card("Orphans").getByText("3")).toBeInTheDocument();
+    expect(card("Orphans").getByText("2 of 16 annotations · 1 of 6 tasks")).toBeInTheDocument();
+    expect(card("Orphans").getByText("⚠ Needs attention")).toBeInTheDocument();
+    expect(card("Orphans").getByRole("link", { name: "Review →" })).toHaveAttribute("href", "#orphans");
   });
 
-  it("shows coverage on a meter", () => {
-    render(<SummaryPanel stats={stats} />);
-    expect(screen.getByRole("meter", { name: "Coverage" })).toHaveAttribute("aria-valuenow", "62.5");
-  });
-
-  it("draws one bar per status with count and share", () => {
+  it("shows coverage as a meter with one segment per status", () => {
     const { container } = render(<SummaryPanel stats={stats} />);
-    expect(screen.getByText("Covered: 5 of 8 (62.5%)")).toBeInTheDocument();
-    expect(screen.getByText("Partial: 1 of 8 (12.5%)")).toBeInTheDocument();
-    expect(screen.getByText("Missing: 2 of 8 (25%)")).toBeInTheDocument();
-    expect(bar(container, "covered")).toHaveStyle({ width: "100%" });
-    expect(bar(container, "partial")).toHaveStyle({ width: "20%" });
-    expect(bar(container, "missing")).toHaveStyle({ width: "40%" });
+    expect(screen.getByRole("meter", { name: "Coverage" })).toHaveAttribute("aria-valuenow", "62.5");
+    expect(card("Coverage").getByText("5 covered · 1 partial · 2 missing")).toBeInTheDocument();
+    expect(segment(container, "covered")).toHaveStyle({ flexGrow: "5" });
+    expect(segment(container, "partial")).toHaveStyle({ flexGrow: "1" });
+    expect(segment(container, "missing")).toHaveStyle({ flexGrow: "2" });
   });
 
   it("renders 0% coverage", () => {
-    const none: Stats = {
-      ...stats,
-      coverage: 0,
-      requirements: { ...stats.requirements, byStatus: { missing: 8 } },
-    };
+    const none: Stats = { ...stats, coverage: 0, requirements: { ...stats.requirements, byStatus: { missing: 8 } } };
     const { container } = render(<SummaryPanel stats={none} />);
-    expect(tile("Coverage").getByText("0%")).toBeInTheDocument();
+    expect(card("Coverage").getByText("0%")).toBeInTheDocument();
     expect(screen.getByRole("meter", { name: "Coverage" })).toHaveAttribute("aria-valuenow", "0");
-    expect(bar(container, "covered")).toHaveStyle({ width: "0%" });
-    expect(bar(container, "missing")).toHaveStyle({ width: "100%" });
+    expect(segment(container, "covered")).toBeNull();
+    expect(segment(container, "missing")).toHaveStyle({ flexGrow: "8" });
   });
 
   it("renders 100% coverage without orphans", () => {
@@ -67,10 +62,10 @@ describe("SummaryPanel", () => {
       tasks: { ...stats.tasks, orphans: 0 },
     };
     render(<SummaryPanel stats={full} />);
-    expect(tile("Coverage").getByText("100%")).toBeInTheDocument();
-    expect(tile("Coverage").getByText("8 of 8 fully covered")).toBeInTheDocument();
-    expect(tile("Orphans").getByText("✓ 0")).toBeInTheDocument();
-    expect(tile("Orphans").queryByRole("link")).toBeNull();
+    expect(card("Coverage").getByText("100%")).toBeInTheDocument();
+    expect(card("Orphans").getByText("None")).toBeInTheDocument();
+    expect(card("Orphans").queryByText("⚠ Needs attention")).toBeNull();
+    expect(card("Orphans").queryByRole("link")).toBeNull();
   });
 
   it("renders an empty project without NaN", () => {
@@ -82,8 +77,8 @@ describe("SummaryPanel", () => {
       lastScanAt: "2026-03-01T10:15:00Z",
     };
     const { container } = render(<SummaryPanel stats={empty} />);
-    expect(tile("Requirements").getByText("FR 0 · AR 0")).toBeInTheDocument();
-    expect(screen.getByText("Covered: 0 of 0 (0%)")).toBeInTheDocument();
+    expect(card("Requirements").getByText("0 FR · 0 AR")).toBeInTheDocument();
+    expect(card("Coverage").getByText("0 covered · 0 partial · 0 missing")).toBeInTheDocument();
     expect(container.textContent).not.toContain("NaN");
   });
 
