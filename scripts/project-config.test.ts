@@ -122,7 +122,17 @@ describe("deliverables", () => {
 describe("deployment docs", () => {
   it("the README documents data modes, checks and Vercel deployment", () => {
     const readme = readFileSync("README.md", "utf8");
-    for (const text of ["NEXT_PUBLIC_API_URL", "pnpm validate", "pnpm check:coverage", "Vercel", "Mock mode"]) {
+    for (const text of [
+      "NEXT_PUBLIC_API_URL",
+      "pnpm validate",
+      "pnpm check:coverage",
+      "pnpm check:browser",
+      "Vercel",
+      "Mock mode",
+      "query parameters",
+      "Network tab",
+      "Refs:",
+    ]) {
       expect(readme).toContain(text);
     }
   });
