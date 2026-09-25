@@ -31,9 +31,6 @@ export function formatPercent(value: number): string {
   return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
 }
 
-export function formatTaskStatus(status: string): string {
-  return status.replaceAll("_", " ");
-}
 
 /** "in_progress" → "In progress", "covered" → "Covered"; already-capitalised values are kept. */
 export function formatLabel(value: string): string {

@@ -1,6 +1,3 @@
 // @req SCD-FLT-001, SCD-FLT-003
-import type { CoverageStatus, RequirementType, TaskStatus } from "@/lib/api";
-
-export const REQUIREMENT_TYPES: readonly RequirementType[] = ["FR", "AR"];
-export const COVERAGE_STATUSES: readonly CoverageStatus[] = ["covered", "partial", "missing"];
-export const TASK_STATUSES: readonly TaskStatus[] = ["open", "in_progress", "done"];
+// Filter options are the API's enum values (defined once in src/lib/api/enums.ts).
+export { COVERAGE_STATUSES, REQUIREMENT_TYPES, TASK_STATUSES } from "@/lib/api/enums";

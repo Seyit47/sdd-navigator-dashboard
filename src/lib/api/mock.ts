@@ -6,6 +6,7 @@ import requirementsData from "../../../data/requirements.json";
 import scanData from "../../../data/scan.json";
 import statsData from "../../../data/stats.json";
 import tasksData from "../../../data/tasks.json";
+import { compareAnnotations, compareRows } from "./sort";
 import type { Transport, TransportRequest, TransportResponse } from "./transport";
 
 export const MOCK_DELAY_MS = 300;
@@ -25,21 +26,15 @@ interface ScanRecord {
   duration?: number;
 }
 
-const compareText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
-
 function sortRows<T extends { id: string; updatedAt: string }>(
   rows: readonly T[],
   sort: string | undefined,
   order: string | undefined,
 ): T[] {
-  const field = sort === "updatedAt" ? "updatedAt" : "id";
-  const direction = order === "desc" ? -1 : 1;
-  return [...rows].sort((a, b) => direction * (compareText(a[field], b[field]) || compareText(a.id, b.id)));
+  return [...rows].sort(compareRows({ sort: sort === "updatedAt" ? "updatedAt" : "id", order: order === "desc" ? "desc" : "asc" }));
 }
 
-const sortedAnnotations = [...annotationsData].sort(
-  (a, b) => compareText(a.file, b.file) || a.line - b.line,
-);
+const sortedAnnotations = [...annotationsData].sort(compareAnnotations);
 const requirementIds = new Set(requirementsData.map((r) => r.id));
 
 const respond = (status: number, body: unknown): TransportResponse => ({ status, body });

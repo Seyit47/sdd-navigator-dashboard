@@ -66,13 +66,13 @@ function main(argv: string[]): number {
     if (!existsSync(tasksPath)) return fail(`${tasksPath} not found`);
     const parsed = parseTasks(readFileSync(tasksPath, "utf8"));
     if (!parsed.ok) return fail(`${values.tasks}: ${parsed.error}`);
-    tasks = parsed.value;
+    tasks = parsed.data;
   }
 
   const annotations: FoundAnnotation[] = collectSourceFiles(root).flatMap((file) =>
     extractAnnotations(relative(root, file).split(sep).join("/"), readFileSync(file, "utf8")),
   );
-  const result = computeCoverage(requirements.value, annotations, tasks);
+  const result = computeCoverage(requirements.data, annotations, tasks);
   console.log(formatReport(result));
 
   const missing = result.requirements.filter((r) => r.status === "missing");

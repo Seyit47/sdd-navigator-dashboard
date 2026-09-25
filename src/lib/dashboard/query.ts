@@ -9,6 +9,7 @@ import type {
   Task,
   TaskStatus,
 } from "@/lib/api";
+import { compareRows } from "@/lib/api/sort";
 import { COVERAGE_STATUSES, REQUIREMENT_TYPES, TASK_STATUSES } from "./options";
 
 export interface DashboardQuery {
@@ -79,15 +80,8 @@ export function toggleValue<T extends string>(selected: readonly T[], value: T, 
   return pick(next, allowed);
 }
 
-const compareText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
-
-/** The API's ordering: text comparison on the sort field, id as tie-break, reversed for desc. */
-export function compareRows<T extends { id: string; updatedAt: string }>(
-  query: Pick<DashboardQuery, "sort" | "order">,
-): (a: T, b: T) => number {
-  const direction = query.order === "desc" ? -1 : 1;
-  return (a, b) => direction * (compareText(a[query.sort], b[query.sort]) || compareText(a.id, b.id));
-}
+/** The API's ordering, shared with the mock server. */
+export { compareRows };
 
 export function applyRequirementQuery(rows: readonly Requirement[], query: DashboardQuery): Requirement[] {
   const needle = query.q.toLowerCase();

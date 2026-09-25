@@ -3,12 +3,13 @@
 // (docs/api/sdd-coverage-api.yaml, from https://api.pdd.foreachpartners.com/spec/sdd-coverage-api.yaml).
 // Types are inferred from these schemas; do not declare them separately.
 import { z } from "zod";
+import { ANNOTATION_TYPES, COVERAGE_STATUSES, REQUIREMENT_TYPES, SCAN_STATES, TASK_STATUSES } from "./enums";
 
-export const RequirementTypeSchema = z.enum(["FR", "AR"]);
-export const CoverageStatusSchema = z.enum(["covered", "partial", "missing"]);
-export const AnnotationTypeSchema = z.enum(["impl", "test"]);
-export const TaskStatusSchema = z.enum(["open", "in_progress", "done"]);
-export const ScanStateSchema = z.enum(["idle", "scanning", "completed", "failed"]);
+export const RequirementTypeSchema = z.enum(REQUIREMENT_TYPES);
+export const CoverageStatusSchema = z.enum(COVERAGE_STATUSES);
+export const AnnotationTypeSchema = z.enum(ANNOTATION_TYPES);
+export const TaskStatusSchema = z.enum(TASK_STATUSES);
+export const ScanStateSchema = z.enum(SCAN_STATES);
 
 const timestamp = z.iso.datetime({ offset: true });
 const count = z.number().int().nonnegative();

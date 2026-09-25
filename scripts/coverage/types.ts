@@ -1,16 +1,12 @@
 // @req SCD-VAL-001
-export interface RequirementEntry {
-  id: string;
-  title: string;
-}
+// The coverage script reuses the app's model types (type-only imports, erased at runtime).
+import type { AnnotationType, CoverageStatus, Requirement, Task } from "../../src/lib/api/schemas.ts";
 
-export interface TaskEntry {
-  id: string;
-  requirementId: string;
-  title: string;
-}
+export type RequirementEntry = Pick<Requirement, "id" | "title">;
 
-export type AnnotationKind = "impl" | "test";
+export type TaskEntry = Pick<Task, "id" | "requirementId" | "title">;
+
+export type AnnotationKind = AnnotationType;
 
 export interface FoundAnnotation {
   file: string;
@@ -19,23 +15,19 @@ export interface FoundAnnotation {
   kind: AnnotationKind;
 }
 
-export type CoverageState = "covered" | "partial" | "missing";
-
 export interface RequirementCoverage {
   id: string;
   title: string;
-  status: CoverageState;
+  status: CoverageStatus;
   impl: number;
   test: number;
 }
 
 export interface CoverageResult {
   requirements: RequirementCoverage[];
-  counts: Record<CoverageState, number>;
+  counts: Record<CoverageStatus, number>;
   /** covered / total × 100 with one decimal; 0 when there are no requirements. */
   coverage: number;
   orphanAnnotations: FoundAnnotation[];
   orphanTasks: TaskEntry[];
 }
-
-export type Parsed<T> = { ok: true; value: T } | { ok: false; error: string };
