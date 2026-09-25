@@ -1,5 +1,7 @@
 # @req SCD-DEP-002, SCD-VAL-002
-# After Vercel reports a successful Production deployment, run the browser checks against it.
+# After Vercel reports a successful Production deployment, run the browser checks against the
+# public Production URL (package.json "homepage"). The per-deployment URL in the event payload
+# sits behind Vercel Deployment Protection, so it cannot be checked without a login.
 name: Deployment check
 
 on:
@@ -17,7 +19,11 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Public Production URL
+        run: echo "BASE_URL=$(node -p 'const pkg = require("./package.json"); pkg.homepage')" >> "$GITHUB_ENV"
+
       - name: Browser checks against Production
         env:
-          BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          # Production must run against the live API (NEXT_PUBLIC_API_URL set in Vercel).
+          EXPECT_DATA_MODE: api
         run: pnpm check:browser

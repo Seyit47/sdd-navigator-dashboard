@@ -3,13 +3,26 @@
 // server-side filtering, theme switching, and no console errors.
 // Usage: pnpm build && pnpm check:browser        (starts `next start` on a free port)
 //        BASE_URL=https://example.app pnpm check:browser   (checks a deployment)
+//        EXPECT_DATA_MODE=api|mock also checks the header's data-mode badge.
+// Expectations are derived, not hard-coded: colours from the theme tokens in globals.css,
+// rows from their own status and date columns, the detail page from the first table link.
 // Needs Chrome (CHROME_PATH, default "google-chrome"). Exit code 1 if any check fails.
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const PORT = 3939;
+const MODE_BADGES = { api: "Live API", mock: "Mock data" };
+
+/** The page background (--plane) in each theme, as computed styles report it. */
+function planeColours() {
+  const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
+  const match = /--plane:\s*light-dark\(\s*#([0-9a-f]{6})\s*,\s*#([0-9a-f]{6})\s*\)/i.exec(css);
+  if (!match) throw new Error("--plane token not found in src/app/globals.css");
+  const rgb = (hex) => `rgb(${[0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
+  return { light: rgb(match[1]), dark: rgb(match[2]) };
+}
 const DEBUG_PORT = 9339;
 const base = (process.env.BASE_URL ?? `http://localhost:${PORT}`).replace(/\/+$/, "");
 const failures = [];
@@ -139,9 +152,21 @@ async function main() {
   };
   const region = `document.querySelector('[aria-labelledby="requirements-heading"]')`;
 
+  // 0. Data mode, and a real requirement to open.
+  await open("/");
+  const expectedMode = process.env.EXPECT_DATA_MODE;
+  if (expectedMode) {
+    const badge = await evaluate(`document.querySelector("header span")?.textContent`);
+    check(`runs in ${expectedMode} mode`, badge === MODE_BADGES[expectedMode], `header shows "${badge}"`);
+  }
+  const detailPath = await evaluate(
+    `document.querySelector('a[href^="/requirements/"]')?.getAttribute("href")?.split("?")[0]`,
+  );
+  check("the table links to a requirement page", typeof detailPath === "string", "no requirement link");
+
   // 1. Phone width: nothing widens the page.
   await send("Emulation.setDeviceMetricsOverride", { width: 360, height: 800, deviceScaleFactor: 1, mobile: true });
-  for (const path of ["/", "/?type=AR&status=missing", "/requirements/FR-API-002"]) {
+  for (const path of ["/", "/?type=AR&status=missing", detailPath ?? "/"]) {
     await open(path);
     const width = await evaluate("document.documentElement.scrollWidth");
     check(`${path} fits a 360px viewport`, width === 360, `scrollWidth ${width}`);
@@ -169,19 +194,36 @@ async function main() {
   check("a filter click shows as pressed and pending within 50 ms", early?.pressed === "true" && early?.busy === "true", JSON.stringify(early));
   const landed = await waitFor(`location.search === "?type=FR&status=missing" && !${region}.hasAttribute("aria-busy")`);
   check("quick consecutive clicks land as one combined URL", landed, await evaluate("location.search"));
-  const empty = await evaluate(`document.body.textContent.includes("No requirements match these filters")`);
-  check("FR + missing shows the empty state", empty, "no empty state");
+  const narrowed = await evaluate(`(() => {
+    const rows = [...${region}.querySelectorAll("tbody tr")].map((tr) => [...tr.children].map((td) => td.textContent.trim()));
+    return {
+      count: rows.length,
+      matching: rows.every((cells) => cells[1] === "FR" && cells[3] === "Missing"),
+      empty: ${region}.textContent.includes("No requirements match these filters"),
+    };
+  })()`);
+  check(
+    "FR + Missing shows only FR, missing rows (or the empty state)",
+    !!narrowed && narrowed.matching && (narrowed.count > 0 || narrowed.empty),
+    JSON.stringify(narrowed),
+  );
 
   await open("/?status=partial&status=missing&sort=updatedAt&order=desc");
-  const ids = await evaluate(`[...${region}.querySelectorAll("tbody tr td:first-child")].map((td) => td.textContent)`);
-  check("the server returns filtered, sorted rows", JSON.stringify(ids) === JSON.stringify(["AR-SEC-001", "FR-API-003", "AR-PERF-001"]), JSON.stringify(ids));
+  const rows = await evaluate(`[...${region}.querySelectorAll("tbody tr")].map((tr) => ({
+    status: tr.children[3].textContent.trim(),
+    updated: tr.querySelector("time")?.getAttribute("datetime") ?? "",
+  }))`);
+  const onlyRequested = Array.isArray(rows) && rows.length > 0 && rows.every((r) => r.status === "Partial" || r.status === "Missing");
+  const newestFirst = Array.isArray(rows) && rows.every((r, i) => i === 0 || rows[i - 1].updated >= r.updated);
+  check("the server returns only the requested statuses, newest first", onlyRequested && newestFirst, JSON.stringify(rows));
 
   // 3. Theme: OS preference by default, the toggle overrides it.
   const background = `getComputedStyle(document.body).backgroundColor`;
+  const plane = planeColours();
   for (const [label, scheme, stored, expected] of [
-    ["OS dark", "dark", null, "rgb(14, 14, 13)"],
-    ["OS light", "light", null, "rgb(250, 250, 249)"],
-    ["toggle dark over OS light", "light", "dark", "rgb(14, 14, 13)"],
+    ["OS dark", "dark", null, plane.dark],
+    ["OS light", "light", null, plane.light],
+    ["toggle dark over OS light", "light", "dark", plane.dark],
   ]) {
     await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: scheme }] });
     await open("/");

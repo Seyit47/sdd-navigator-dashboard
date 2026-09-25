@@ -66,4 +66,4 @@ The app deploys on **Vercel** through the GitHub integration:
 
 Set `NEXT_PUBLIC_API_URL` per Vercel environment (Project → Settings → Environment Variables). Leave it unset in Preview to review UI changes against mock data.
 
-CI (`.github/workflows/ci.yml`) runs `pnpm validate`, `pnpm check:browser` and `pnpm test:contract` on every pull request and push to `main`. After each successful Production deployment, `.github/workflows/deployment-check.yml` runs the browser checks against the live site.
+CI (`.github/workflows/ci.yml`) runs `pnpm validate`, `pnpm check:browser` and `pnpm test:contract` on every pull request and push to `main`. After each successful Production deployment, `.github/workflows/deployment-check.yml` runs the browser checks against the public Production URL (`homepage` in `package.json`) and verifies that it runs in API mode.
