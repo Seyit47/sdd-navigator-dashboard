@@ -26,12 +26,18 @@ jobs:
         if: github.event_name == 'pull_request'
         run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
 
+      # Merge commits (e.g. from GitHub's merge button) skip commitlint; check every commit's Refs.
+      - name: Commit references
+        run: node scripts/check-commit-refs.ts ${{ github.event.pull_request.base.sha || github.event.before }} ${{ github.event.pull_request.head.sha || github.sha }}
+
       - name: Validate
         run: pnpm validate
 
       # Layout, pending feedback, server-side filtering and theming in real Chrome
       # (preinstalled on GitHub's Ubuntu runners), against the build from `validate`.
       - name: Browser checks
+        env:
+          EXPECT_DATA_MODE: mock
         run: pnpm check:browser
 
       # The live SDD Navigator API still matches the schemas and honours the filter params.
