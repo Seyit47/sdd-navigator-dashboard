@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "homepage": "https://sdd-navigator-dashboard-theta.vercel.app",
   "engines": {
     "node": ">=22.18"
   },
