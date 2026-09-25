@@ -1,6 +1,6 @@
 // @req SCD-API-003
 // Zod mirrors of the SDD Navigator OpenAPI v3.0.0 schemas
-// (https://api.pdd.foreachpartners.com/spec/sdd-coverage-api.yaml).
+// (docs/api/sdd-coverage-api.yaml, from https://api.pdd.foreachpartners.com/spec/sdd-coverage-api.yaml).
 // Types are inferred from these schemas; do not declare them separately.
 import { z } from "zod";
 

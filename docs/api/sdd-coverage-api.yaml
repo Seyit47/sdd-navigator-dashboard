@@ -1,0 +1,686 @@
+openapi: 3.0.3
+info:
+  title: SDD Navigator API
+  description: |
+    REST API for browsing a project's Specification-Driven Development structure.
+    Single-project scope: requirements, code annotations, tasks — with filters and sorting.
+
+    Three artifact types linked to requirements:
+    - **Annotations** (`@req` markers in code) — impl and test
+    - **Tasks** (work items from `tasks.yaml`) — open, in_progress, done
+
+    Orphan detection: each artifact type can have orphans — references to non-existent requirements.
+
+    See: https://blog.rezvov.com/posts/specification-driven-development-four-pillars
+  version: 3.0.0
+  contact:
+    name: ForEach Partners
+    url: https://foreachpartners.com/
+
+servers:
+  - url: https://api.pdd.foreachpartners.com
+    description: Production server
+  - url: http://localhost:4010
+    description: Local development
+
+paths:
+  /healthcheck:
+    get:
+      summary: Service health
+      description: Returns service status and version. Use to verify the API is running.
+      operationId: healthcheck
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Healthcheck"
+              example:
+                status: healthy
+                version: "3.0.0"
+                timestamp: "2026-03-01T10:15:00Z"
+
+  /stats:
+    get:
+      summary: Project-wide statistics
+      description: |
+        Aggregate numbers for the dashboard: requirement totals broken down by type and coverage status,
+        annotation counts by kind (impl/test) with orphan count, task counts by status with orphan count,
+        and overall coverage percentage.
+      operationId: getStats
+      responses:
+        "200":
+          description: Aggregate stats across all artifact types
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+              example:
+                requirements:
+                  total: 8
+                  byType: { FR: 6, AR: 2 }
+                  byStatus: { covered: 5, partial: 1, missing: 2 }
+                annotations:
+                  total: 16
+                  impl: 10
+                  test: 6
+                  orphans: 2
+                tasks:
+                  total: 6
+                  byStatus: { open: 3, in_progress: 1, done: 2 }
+                  orphans: 1
+                coverage: 62.5
+                lastScanAt: "2026-03-01T10:15:00Z"
+
+  /requirements:
+    get:
+      summary: List requirements
+      description: |
+        Returns all requirements from `requirements.yaml`. Each requirement has a coverage status
+        computed by the scanner: **covered** (has both impl and test annotations), **partial** (impl only),
+        or **missing** (no annotations). Filter by type (FR/AR) or status. Sort by id or updatedAt.
+      operationId: listRequirements
+      parameters:
+        - name: type
+          in: query
+          description: "Filter by requirement type"
+          schema:
+            $ref: "#/components/schemas/RequirementType"
+        - name: status
+          in: query
+          description: "Filter by coverage status"
+          schema:
+            $ref: "#/components/schemas/CoverageStatus"
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [id, updatedAt]
+            default: id
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        "200":
+          description: Requirements list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Requirement"
+              example:
+                - id: FR-SCAN-001
+                  type: FR
+                  title: Parse requirements.yaml
+                  description: "System MUST read requirements.yaml from repository root and validate that every entry contains id and title fields."
+                  status: covered
+                  createdAt: "2026-02-10T09:00:00Z"
+                  updatedAt: "2026-02-28T14:30:00Z"
+                - id: FR-SCAN-002
+                  type: FR
+                  title: Scan @req annotations in source files
+                  description: "Scanner MUST find all @req annotations in .rs, .ts, .js, .py, .dart, .go files and classify each as impl or test based on file path."
+                  status: covered
+                  createdAt: "2026-02-10T09:00:00Z"
+                  updatedAt: "2026-03-01T10:15:00Z"
+                - id: FR-SCAN-003
+                  type: FR
+                  title: Detect orphan annotations
+                  description: "Scanner MUST report annotations whose reqId does not match any entry in requirements.yaml."
+                  status: covered
+                  createdAt: "2026-02-12T11:00:00Z"
+                  updatedAt: "2026-02-28T14:30:00Z"
+                - id: FR-API-001
+                  type: FR
+                  title: List requirements with filters and sorting
+                  description: "GET /requirements MUST support filtering by type and status, sorting by id or updatedAt."
+                  status: covered
+                  createdAt: "2026-02-14T10:00:00Z"
+                  updatedAt: "2026-03-01T10:15:00Z"
+                - id: FR-API-002
+                  type: FR
+                  title: Requirement detail with linked artifacts
+                  description: "GET /requirements/{id} MUST return the requirement with all linked annotations and tasks."
+                  status: partial
+                  createdAt: "2026-02-14T10:00:00Z"
+                  updatedAt: "2026-02-25T16:00:00Z"
+                - id: FR-API-003
+                  type: FR
+                  title: Full-text search across requirements
+                  description: "Service SHOULD support substring matching across requirement id and title fields."
+                  status: partial
+                  createdAt: "2026-02-18T13:00:00Z"
+                  updatedAt: "2026-02-20T09:45:00Z"
+                - id: AR-PERF-001
+                  type: AR
+                  title: Scan completes under 5s for 10k files
+                  description: "Full codebase scan MUST complete within 5 seconds for repositories containing up to 10,000 source files."
+                  status: missing
+                  createdAt: "2026-02-10T09:00:00Z"
+                  updatedAt: "2026-02-10T09:00:00Z"
+                - id: AR-SEC-001
+                  type: AR
+                  title: "Rate-limit /scan endpoint (10 req/min)"
+                  description: "POST /scan MUST reject requests exceeding 10 per minute per client IP with HTTP 429."
+                  status: missing
+                  createdAt: "2026-02-20T15:00:00Z"
+                  updatedAt: "2026-02-20T15:00:00Z"
+
+  /requirements/{requirementId}:
+    get:
+      summary: Requirement detail with all linked artifacts
+      description: |
+        Returns a single requirement with its full traceability chain:
+        all code annotations (`@req` markers in source and test files) and all tasks from `tasks.yaml`
+        that reference this requirement. This is the core navigation view of the SDD Navigator.
+      operationId: getRequirement
+      parameters:
+        - $ref: "#/components/parameters/requirementId"
+      responses:
+        "200":
+          description: Requirement with annotations and tasks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequirementDetail"
+              example:
+                id: FR-SCAN-001
+                type: FR
+                title: Parse requirements.yaml
+                description: "System MUST read requirements.yaml from repository root and validate that every entry contains id and title fields."
+                status: covered
+                createdAt: "2026-02-10T09:00:00Z"
+                updatedAt: "2026-02-28T14:30:00Z"
+                annotations:
+                  - file: src/parser.rs
+                    line: 15
+                    reqId: FR-SCAN-001
+                    type: impl
+                    snippet: "/// @req FR-SCAN-001\nfn parse_requirements(path: &Path) -> Result<Vec<Requirement>> {"
+                  - file: src/parser.rs
+                    line: 58
+                    reqId: FR-SCAN-001
+                    type: impl
+                    snippet: "/// @req FR-SCAN-001\nfn validate_yaml_schema(doc: &Value) -> Result<()> {"
+                  - file: tests/parser_test.rs
+                    line: 12
+                    reqId: FR-SCAN-001
+                    type: test
+                    snippet: "/// @req FR-SCAN-001\n#[test] fn test_parse_valid_yaml() {"
+                tasks:
+                  - id: TASK-001
+                    requirementId: FR-SCAN-001
+                    title: Implement YAML parser
+                    status: done
+                    assignee: alexey
+                    createdAt: "2026-02-10T09:00:00Z"
+                    updatedAt: "2026-02-20T18:00:00Z"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /annotations:
+    get:
+      summary: "List code annotations (sorted by file + line)"
+      description: |
+        Returns `@req` annotations found in source code by the scanner. Each annotation links a code location
+        (file + line) to a requirement ID. Type **impl** = production code, **test** = test code.
+        Use `orphans=true` to find annotations referencing requirements that don't exist in `requirements.yaml` —
+        typically leftover references after a requirement was removed or renamed.
+      operationId: listAnnotations
+      parameters:
+        - name: type
+          in: query
+          description: "Filter by annotation kind"
+          schema:
+            $ref: "#/components/schemas/AnnotationType"
+        - name: orphans
+          in: query
+          description: "If true, return only orphan annotations (reqId not in requirements.yaml)"
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Annotations list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Annotation"
+              examples:
+                all:
+                  summary: "GET /annotations (first 3 of 16)"
+                  value:
+                    - file: src/api/legacy.rs
+                      line: 5
+                      reqId: FR-LEGACY-001
+                      type: impl
+                      snippet: "/// @req FR-LEGACY-001\nfn deprecated_handler() {"
+                    - file: src/api/requirements.rs
+                      line: 10
+                      reqId: FR-API-001
+                      type: impl
+                      snippet: "/// @req FR-API-001\nasync fn list_requirements(query: Query<ReqFilter>) -> Json<Vec<Requirement>> {"
+                    - file: src/api/requirements.rs
+                      line: 45
+                      reqId: FR-API-002
+                      type: impl
+                      snippet: "/// @req FR-API-002\nasync fn get_requirement(path: Path<String>) -> Json<RequirementDetail> {"
+                orphans_only:
+                  summary: "GET /annotations?orphans=true"
+                  value:
+                    - file: src/api/legacy.rs
+                      line: 5
+                      reqId: FR-LEGACY-001
+                      type: impl
+                      snippet: "/// @req FR-LEGACY-001\nfn deprecated_handler() {"
+                    - file: tests/api_test.rs
+                      line: 88
+                      reqId: FR-API-099
+                      type: test
+                      snippet: "/// @req FR-API-099\n#[tokio::test] async fn test_removed_endpoint() {"
+                tests_only:
+                  summary: "GET /annotations?type=test"
+                  value:
+                    - file: tests/api_test.rs
+                      line: 20
+                      reqId: FR-API-001
+                      type: test
+                      snippet: "/// @req FR-API-001\n#[tokio::test] async fn test_list_with_status_filter() {"
+                    - file: tests/api_test.rs
+                      line: 88
+                      reqId: FR-API-099
+                      type: test
+                      snippet: "/// @req FR-API-099\n#[tokio::test] async fn test_removed_endpoint() {"
+                    - file: tests/parser_test.rs
+                      line: 12
+                      reqId: FR-SCAN-001
+                      type: test
+                      snippet: "/// @req FR-SCAN-001\n#[test] fn test_parse_valid_yaml() {"
+                    - file: tests/scanner_test.rs
+                      line: 8
+                      reqId: FR-SCAN-002
+                      type: test
+                      snippet: "/// @req FR-SCAN-002\n#[test] fn test_scan_rust_file() {"
+
+  /tasks:
+    get:
+      summary: List tasks
+      description: |
+        Returns work items from `tasks.yaml`. Each task references a requirement by ID.
+        Use `orphans=true` to find tasks referencing requirements that don't exist in `requirements.yaml` —
+        typically leftover work items for deleted or renamed requirements.
+      operationId: listTasks
+      parameters:
+        - name: status
+          in: query
+          description: "Filter by task status"
+          schema:
+            $ref: "#/components/schemas/TaskStatus"
+        - name: orphans
+          in: query
+          description: "If true, return only orphan tasks (requirementId not in requirements.yaml)"
+          schema:
+            type: boolean
+            default: false
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [id, updatedAt]
+            default: id
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        "200":
+          description: Tasks list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+              examples:
+                all:
+                  summary: "GET /tasks"
+                  value:
+                    - id: TASK-001
+                      requirementId: FR-SCAN-001
+                      title: Implement YAML parser
+                      status: done
+                      assignee: alexey
+                      createdAt: "2026-02-10T09:00:00Z"
+                      updatedAt: "2026-02-20T18:00:00Z"
+                    - id: TASK-002
+                      requirementId: FR-SCAN-002
+                      title: Build annotation scanner
+                      status: done
+                      assignee: alexey
+                      createdAt: "2026-02-12T10:00:00Z"
+                      updatedAt: "2026-02-25T15:00:00Z"
+                    - id: TASK-003
+                      requirementId: FR-API-001
+                      title: Add filtering to requirements endpoint
+                      status: in_progress
+                      assignee: maria
+                      createdAt: "2026-02-18T09:00:00Z"
+                      updatedAt: "2026-03-01T10:15:00Z"
+                    - id: TASK-004
+                      requirementId: FR-API-002
+                      title: Write tests for requirement detail
+                      status: open
+                      createdAt: "2026-02-20T11:00:00Z"
+                      updatedAt: "2026-02-20T11:00:00Z"
+                    - id: TASK-005
+                      requirementId: AR-PERF-001
+                      title: Benchmark scan on large repos
+                      status: open
+                      createdAt: "2026-02-22T14:00:00Z"
+                      updatedAt: "2026-02-22T14:00:00Z"
+                    - id: TASK-006
+                      requirementId: FR-EXPORT-001
+                      title: Add CSV export
+                      status: open
+                      createdAt: "2026-02-25T10:00:00Z"
+                      updatedAt: "2026-02-25T10:00:00Z"
+                orphans_only:
+                  summary: "GET /tasks?orphans=true"
+                  value:
+                    - id: TASK-006
+                      requirementId: FR-EXPORT-001
+                      title: Add CSV export
+                      status: open
+                      createdAt: "2026-02-25T10:00:00Z"
+                      updatedAt: "2026-02-25T10:00:00Z"
+
+  /scan:
+    post:
+      summary: Trigger codebase re-scan
+      description: |
+        Starts a new scan of the project codebase. The scanner reads `requirements.yaml` and `tasks.yaml`,
+        then walks source files looking for `@req` annotations. Results update all other endpoints.
+        Returns immediately with status `scanning`; poll `GET /scan` for completion.
+      operationId: triggerScan
+      responses:
+        "202":
+          description: Scan started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanStatus"
+              example:
+                status: scanning
+                startedAt: "2026-03-01T10:14:59Z"
+    get:
+      summary: Current scan status
+      description: Returns the state of the most recent scan. Poll this after `POST /scan` to track progress.
+      operationId: getScanStatus
+      responses:
+        "200":
+          description: Scan state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanStatus"
+              example:
+                status: completed
+                startedAt: "2026-03-01T10:14:59Z"
+                completedAt: "2026-03-01T10:15:00Z"
+                duration: 340
+
+components:
+  parameters:
+    requirementId:
+      name: requirementId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: FR-SCAN-001
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: not_found
+            message: "Requirement 'FR-UNKNOWN-999' not found"
+
+  schemas:
+    Healthcheck:
+      type: object
+      required: [status, version, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Stats:
+      type: object
+      required: [requirements, annotations, tasks, coverage, lastScanAt]
+      properties:
+        requirements:
+          $ref: "#/components/schemas/RequirementStats"
+        annotations:
+          $ref: "#/components/schemas/AnnotationStats"
+        tasks:
+          $ref: "#/components/schemas/TaskStats"
+        coverage:
+          type: number
+          format: float
+          description: "Fully covered / total * 100"
+        lastScanAt:
+          type: string
+          format: date-time
+
+    RequirementStats:
+      type: object
+      description: "Requirement totals broken down by type and coverage status"
+      required: [total, byType, byStatus]
+      properties:
+        total:
+          type: integer
+        byType:
+          type: object
+          description: "Count per RequirementType (FR, AR)"
+          additionalProperties:
+            type: integer
+        byStatus:
+          type: object
+          description: "Count per CoverageStatus (covered, partial, missing)"
+          additionalProperties:
+            type: integer
+
+    AnnotationStats:
+      type: object
+      description: "Annotation counts by kind with orphan total"
+      required: [total, impl, test, orphans]
+      properties:
+        total:
+          type: integer
+        impl:
+          type: integer
+          description: "Annotations in production code"
+        test:
+          type: integer
+          description: "Annotations in test code"
+        orphans:
+          type: integer
+          description: "Annotations referencing non-existent requirements"
+
+    TaskStats:
+      type: object
+      description: "Task counts by status with orphan total"
+      required: [total, byStatus, orphans]
+      properties:
+        total:
+          type: integer
+        byStatus:
+          type: object
+          description: "Count per TaskStatus (open, in_progress, done)"
+          additionalProperties:
+            type: integer
+        orphans:
+          type: integer
+          description: "Tasks referencing non-existent requirements"
+
+    RequirementType:
+      type: string
+      enum: [FR, AR]
+      description: "FR = functional, AR = architectural"
+
+    CoverageStatus:
+      type: string
+      enum: [covered, partial, missing]
+      description: |
+        Coverage status computed by scanner:
+        - **covered**: has both impl and test annotations
+        - **partial**: has impl annotations but no tests
+        - **missing**: no annotations found
+
+    TaskStatus:
+      type: string
+      enum: [open, in_progress, done]
+
+    Requirement:
+      type: object
+      description: "A specification item from `requirements.yaml`. ID format: `{TYPE}-{DOMAIN}-{NNN}` (e.g. FR-SCAN-001)."
+      required: [id, type, title, description, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          description: "Unique identifier. Pattern: TYPE-DOMAIN-NNN"
+        type:
+          $ref: "#/components/schemas/RequirementType"
+        title:
+          type: string
+          description: "Short human-readable name"
+        description:
+          type: string
+          description: "Specification statement — a MUST/SHOULD directive that can be verified"
+        status:
+          $ref: "#/components/schemas/CoverageStatus"
+        createdAt:
+          type: string
+          format: date-time
+          description: "When the requirement was first added to requirements.yaml"
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Last modification timestamp"
+
+    RequirementDetail:
+      description: "Requirement with its full traceability chain — all linked annotations and tasks."
+      allOf:
+        - $ref: "#/components/schemas/Requirement"
+        - type: object
+          required: [annotations, tasks]
+          properties:
+            annotations:
+              type: array
+              description: "All `@req` annotations in code that reference this requirement"
+              items:
+                $ref: "#/components/schemas/Annotation"
+            tasks:
+              type: array
+              description: "All tasks from tasks.yaml that reference this requirement"
+              items:
+                $ref: "#/components/schemas/Task"
+
+    AnnotationType:
+      type: string
+      enum: [impl, test]
+      description: |
+        Annotation kind determined by file location:
+        - **impl**: annotation in production source code (e.g. `src/`)
+        - **test**: annotation in test files (e.g. `tests/`, `*_test.rs`, `*.test.ts`)
+
+    Annotation:
+      type: object
+      description: "A `@req REQUIREMENT_ID` comment found in source code by the scanner."
+      required: [file, line, reqId, type, snippet]
+      properties:
+        file:
+          type: string
+          description: "Relative path from repository root"
+        line:
+          type: integer
+          description: "Line number where `@req` appears"
+        reqId:
+          type: string
+          description: "Requirement ID referenced by this annotation. May not exist in requirements.yaml (orphan)."
+        type:
+          $ref: "#/components/schemas/AnnotationType"
+        snippet:
+          type: string
+          description: "2-3 lines of code context around the `@req` comment"
+
+    Task:
+      type: object
+      description: "A work item from `tasks.yaml` linked to a requirement."
+      required: [id, requirementId, title, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          description: "Task identifier (e.g. TASK-001)"
+        requirementId:
+          type: string
+          description: "Requirement ID this task relates to. May not exist in requirements.yaml (orphan)."
+        title:
+          type: string
+          description: "What needs to be done"
+        status:
+          $ref: "#/components/schemas/TaskStatus"
+        assignee:
+          type: string
+          description: "Person responsible. Omitted if unassigned."
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ScanStatus:
+      type: object
+      required: [status, startedAt]
+      properties:
+        status:
+          type: string
+          enum: [idle, scanning, completed, failed]
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          description: "Scan duration in milliseconds"
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+        message:
+          type: string

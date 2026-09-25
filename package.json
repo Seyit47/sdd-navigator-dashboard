@@ -24,7 +24,6 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.128.0",
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@tailwindcss/postcss": "^4",
