@@ -1,7 +1,8 @@
 // @req SCD-VAL-001
 import { parse as parseYaml } from "yaml";
 import { REQUIREMENT_ID } from "./ids.ts";
-import type { Parsed, RequirementEntry, TaskEntry } from "./types.ts";
+import type { Result } from "../../src/lib/api/errors.ts";
+import type { RequirementEntry, TaskEntry } from "./types.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -11,7 +12,7 @@ function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export function parseRequirements(text: string): Parsed<RequirementEntry[]> {
+export function parseRequirements(text: string): Result<RequirementEntry[], string> {
   if (text.trim() === "") return { ok: false, error: "requirements file is empty" };
   let doc: unknown;
   try {
@@ -37,10 +38,10 @@ export function parseRequirements(text: string): Parsed<RequirementEntry[]> {
     seen.add(item.id);
     entries.push({ id: item.id, title: item.title });
   }
-  return { ok: true, value: entries };
+  return { ok: true, data: entries };
 }
 
-export function parseTasks(text: string): Parsed<TaskEntry[]> {
+export function parseTasks(text: string): Result<TaskEntry[], string> {
   if (text.trim() === "") return { ok: false, error: "tasks file is empty" };
   let doc: unknown;
   try {
@@ -62,5 +63,5 @@ export function parseTasks(text: string): Parsed<TaskEntry[]> {
     }
     tasks.push({ id: item.id, requirementId: item.requirementId, title: item.title });
   }
-  return { ok: true, value: tasks };
+  return { ok: true, data: tasks };
 }

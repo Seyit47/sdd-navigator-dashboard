@@ -12,10 +12,10 @@ This document reconstructs the AI-assisted development of the SDD Navigator Dash
 | **Plugin: superpowers** | 6.4.1 (`claude-plugins-official`) | Process skills: `using-superpowers`, `brainstorming` (including its browser **visual companion** for layout mockups), `writing-plans`, `executing-plans`, `test-driven-development`, `finishing-a-development-branch`. |
 | **Bundled skills** | `claude-api`, `dataviz` | `claude-api`: SDK usage and model choice for the PR-summary GitHub Action. `dataviz`: chart form, the status colour palette and the stat-tile / meter design of the summary panel. |
 | **Claude Code memory** | `memory/*.md` | Project context and the developer's working preferences, carried between sessions. |
-| **Claude API (in CI)** | `@anthropic-ai/sdk` 0.128.0, model `claude-opus-5` | A GitHub Action (`.github/workflows/pr-summary.yml`) that writes an AI summary into PR descriptions. |
+| **Claude API (in CI)** | `@anthropic-ai/sdk` 0.128.0, model `claude-opus-5` | A GitHub Action (`.github/workflows/pr-summary.yml`) that writes an AI summary into PR descriptions. Removed on 2026-09-25: the API key had no credits, so every run failed. |
 | **Supporting tools driven by the AI** | pnpm 12, Node 24, Vitest 5, headless Google Chrome (DevTools protocol), `curl` | Installs, tests, checking the live API, real-browser layout and interaction checks. |
 
-Tool calls in the main session: Bash 187, Write 14, AskUserQuestion 12, Skill 11, Edit 6, Read 2, Agent 2.
+Tool calls in the main session: Bash 279, Write 21, AskUserQuestion 13, Skill 12, Edit 6, Read 3, Agent 2.
 
 ## 2. Conversation Log
 
@@ -28,11 +28,11 @@ Tool calls in the main session: Bash 187, Write 14, AskUserQuestion 12, Skill 11
 ### Session 2 — initial commit
 - **When:** 2026-09-24 11:54:37 → 11:55:20 UTC (43 s). Transcript `74e4b6c0…`.
 - **Asked:** "push current changes as initial commit".
-- **Accepted:** commit `554f354 Initial commit` (the create-next-app scaffold).
+- **Accepted:** commit `ec4cc91 Initial commit` (the create-next-app scaffold).
 - **Rejected:** the push over HTTPS failed (no credentials in the AI's shell) and SSH was denied. The developer declined a retry that would have used their private SSH key directly, and pushed themselves.
 
 ### Session 3 — main development session
-- **When:** 2026-09-24 14:09:16 → 23:27 UTC (≈ 9 h 18 min including breaks; still open when this document was written). Transcript `e98aa866…`.
+- **When:** 2026-09-24 14:09:16 → 2026-09-25 00:31 UTC (≈ 10 h 22 min including breaks; still open when this document was last updated). Transcript `e98aa866…`.
 
 | Time (UTC) | Topic | What the developer asked for | Accepted | Rejected / corrected |
 |---|---|---|---|---|
@@ -49,6 +49,12 @@ Tool calls in the main session: Bash 187, Write 14, AskUserQuestion 12, Skill 11
 | 22:31–22:55 | Plan | review of the 9-task plan | Plan approved; native execution | — |
 | 22:56–23:19 | Implementation and review | (autonomous execution) | 9 tasks, a 4-fix review pass, `pnpm validate` green, coverage 100 % | — |
 | 23:26 | This document | produce `PROCESS.md` | — | — |
+| 23:36–23:40 | Deliverables | live URL in the README, deliverables checklist | README links the Vercel URL and the repository; a test guards descriptions and links | — |
+| 23:41–23:57 | UI refresh + API filtering | "more user friendly … minimalist", and filters sent to the API as query parameters | Direction A ("soft cards") from three mockups; server-side fan-out of multi-select filters; spec, plan, native execution | Kept the work on `feat/dashboard` instead of a new branch |
+| ≈00:05 | Live API check | "it is not fetching from live API" | Evidence showed the server does call the API (5 HTTPS connections, filtered result); the README now explains why the calls are not in the browser's Network tab | — |
+| 00:07–00:10 | SDD audit | evaluate the repo against the four SDD pillars | A rated report with 15 violations | — |
+| 00:13–00:30 | Audit fixes | "fix all these" | All 15 fixed on `fix/sdd-audit` (see Timeline and Course Corrections) | Chose to remove the PR-summary action (no API credits) and delete the plan documents |
+| 00:35–01:10 | Second audit + fixes | re-evaluate, then "fix them all rewriting history" | Strict coverage gate, workflow scanning, `Refs:` on every commit type and in CI, shared setup action on Node 24 actions, card-surface utilities, no internal-only exports, browser-check annotations; **history rewritten** so every commit carries `Refs:` | — |
 
 ### Subagent sessions (started from session 3)
 
@@ -64,26 +70,36 @@ Times are UTC, taken from commit timestamps and transcript events.
 | # | Step | Start | End | Duration |
 |---|---|---|---|---|
 | 1 | Plugin install attempt | 09-23 20:07 | 20:08 | < 1 min |
-| 2 | Initial commit (`554f354`) | 09-24 11:54 | 11:55 | 1 min |
-| 3 | Husky build hooks + `CLAUDE.md` (`9ef1b3b`, `d4f88fc`) | 14:10 | 14:16 | 6 min |
+| 2 | Initial commit (`ec4cc91`) | 09-24 11:54 | 11:55 | 1 min |
+| 3 | Husky build hooks + `CLAUDE.md` (`70c2215`, `9175dc8`) | 14:10 | 14:16 | 6 min |
 | 4 | Scoping, API discovery | 14:20 | 14:28 | 8 min |
 | 5 | Step 1: `requirements.yaml` draft | 14:28 | 14:35 | ≈ 7 min (review waited until 21:04) |
-| 6 | PR-summary GitHub Action (`30fd69b`) | 19:11 | 19:41 | 30 min |
+| 6 | PR-summary GitHub Action (`9ce5a65`) | 19:11 | 19:41 | 30 min |
 | 7 | Secret diagnosis → repository secret | 20:54 | 20:56 | 2 min |
 | 8 | PR #1 merged | 21:02 | — | — |
-| 9 | Step 1 finalised (Vercel) → PR #2 squash-merged (`1abda59`) | 21:04 | 21:16 | 12 min |
-| 10 | Conventional Commits + commitlint → PR #3 (`9c9de6b`, `1b88206`) | 21:07 | 21:12 | 5 min |
-| 11 | Step 2 design → spec (`4733e9a`) | 21:23 | 21:31 | 8 min |
-| 12 | Step 2 plan (`d9fa28a`) | 21:32 | 21:39 | 7 min |
-| 13 | Step 2 implementation, 5 TDD tasks (`0fd48ff` → `10bfcb7`) | 21:44 | 21:49 | 5 min |
-| 14 | Step 2 review + fixes (`984b8af`) → PR #4 merged | 21:49 | 22:04 | 15 min |
-| 15 | Steps 3–5 brainstorming (visual companion) → spec (`8bfb883`) | 22:05 | 22:30 | 25 min |
-| 16 | Steps 3–5 plan (`532cc37`, 4,006 lines) | 22:31 | 22:49 | 18 min |
-| 17 | Steps 3–5 implementation, 9 TDD tasks (`f6e622f` → `40b779a`) | 22:56 | 23:04 | 8 min |
-| 18 | Final review + fix pass (`51ac46d` → `5111813`), Chrome verification | 23:05 | 23:20 | 15 min |
-| 19 | `PROCESS.md` | 23:26 | — | — |
+| 9 | Step 1 finalised (Vercel) → PR #2 squash-merged (`da1ce15`) | 21:04 | 21:16 | 12 min |
+| 10 | Conventional Commits + commitlint → PR #3 (`9941938`, `6f7baaa`) | 21:07 | 21:12 | 5 min |
+| 11 | Step 2 design → spec (`101b50c`) | 21:23 | 21:31 | 8 min |
+| 12 | Step 2 plan (`ee0b0f9`) | 21:32 | 21:39 | 7 min |
+| 13 | Step 2 implementation, 5 TDD tasks (`82a39ec` → `afa6e0f`) | 21:44 | 21:49 | 5 min |
+| 14 | Step 2 review + fixes (`7a99405`) → PR #4 merged | 21:49 | 22:04 | 15 min |
+| 15 | Steps 3–5 brainstorming (visual companion) → spec (`2c75a08`) | 22:05 | 22:30 | 25 min |
+| 16 | Steps 3–5 plan (`98298ba`, 4,006 lines) | 22:31 | 22:49 | 18 min |
+| 17 | Steps 3–5 implementation, 9 TDD tasks (`a96dbff` → `4e795fa`) | 22:56 | 23:04 | 8 min |
+| 18 | Final review + fix pass (`287032a` → `1353137`), Chrome verification | 23:05 | 23:20 | 15 min |
+| 19 | `PROCESS.md` (`b600a04`) | 23:26 | 23:36 | 10 min |
+| 20 | Deliverables: live URL in README (`ce57f18`) | 23:36 | 23:41 | 5 min |
+| 21 | UI refresh: design with mockups → spec (`92ae0f1`) | 23:41 | 23:47 | 6 min |
+| 22 | UI refresh: plan (`5b4bb3b`) | 23:48 | 23:57 | 9 min |
+| 23 | UI refresh: 5 TDD tasks (`996e7a2` → `d2e9092`), Chrome verification | 23:58 | 00:05 | 7 min |
+| 24 | "Not fetching from live API": root-cause investigation | 00:05 | 00:07 | 2 min |
+| 25 | PR #5 merged (`d86c0ef`); CI green on the PR and on `main` | 00:08 | — | — |
+| 26 | SDD four-pillar audit | 00:07 | 00:12 | 5 min |
+| 27 | Audit fixes on `fix/sdd-audit` (`4046774` → last commit) | 00:13 | 00:31 | 18 min |
+| 28 | Second audit; CI found the browser check failing on GitHub's runner | 00:35 | 00:45 | 10 min |
+| 29 | Second round of fixes; history rewritten with `git filter-branch` (messages only, trees identical; backups tagged `backup/*-before-rewrite`) | 00:45 | 01:10 | 25 min |
 
-Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirements spec (21:16, squash), #4 data layer (22:04). The dashboard branch (`feat/dashboard`) is not pushed yet.
+Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirements spec (21:16, squash), #4 data layer (22:04), #5 dashboard, UI refresh and API-side filtering (00:08). The audit fixes are on `fix/sdd-audit`.
 
 ## 4. Key Decisions
 
@@ -108,14 +124,22 @@ Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirem
 | Self-validation | `scripts/check-coverage.ts` on Node's native TypeScript support; exit 0/1/2 | ts-node/tsx; a JS script | No extra dependency; pure functions under test. |
 | Enforcement split | Hooks: tests/build (commit), + typecheck/lint (push); CI: `pnpm validate` incl. coverage gate | Coverage gate in hooks | Lets work-in-progress branches still be pushed; the gate is enforced before merge. |
 | Commit hygiene | Conventional Commits, enforced by commitlint | Documented rule only | Developer asked for enforcement. |
+| Where filtering happens (revised) | Server fetches with the filters as query parameters; one request per selected value, merged | Keep in-memory filtering; fetch from the browser | Developer asked for filters in the API request; server-side keeps one code path for mock and API mode. |
+| Pending feedback | Explicit pending state in `useDashboardQuery` | React `useOptimistic` | `useOptimistic` drops the pressed state when its transition settles; the explicit state is deterministic and testable. |
+| Visual design (revised) | "Soft cards": tokens, segmented filters, tinted status pills, KPI cards | App shell with sidebar; editorial single column | Chosen by the developer from browser mockups. |
+| Theme tokens | One declaration per token with `light-dark()`; `data-theme` only switches `color-scheme` | Two dark blocks (OS preference and toggle) | Removes duplicated values; verified in Chrome for OS light/dark and both toggle overrides. |
+| Commit traceability | `Refs: SCD-…` footer required for `feat`/`fix`/`refactor`/`perf`/`test`, checked by a local commitlint rule | Requirement id in the subject | Keeps the subject readable; history before the rule cannot be rewritten. |
+| Browser verification | `scripts/check-browser.mjs` over the Chrome DevTools protocol, in CI and after each Production deployment | Playwright | No new dependency; Chrome is preinstalled on GitHub's runners. |
+| PR-summary action | Removed | Keep it and skip when the API rejects the request | No API credits; outside the brief; its failing check was noise on every PR. |
 
 ## 5. What the Developer Controlled
 
 **Gates the developer approved explicitly:** every design, spec and plan below needed an explicit "yes" before any code was written:
 - hook design, PR-summary design;
 - `requirements.yaml` (answered 3 open questions);
-- data-layer design sections 1–2, spec `docs/superpowers/specs/2026-09-25-data-layer-design.md`, plan `docs/superpowers/plans/2026-09-25-data-layer.md`;
-- dashboard design sections 1–3 (with the Step 5 scope folded in), spec `docs/superpowers/specs/2026-09-25-dashboard-design.md`, plan `docs/superpowers/plans/2026-09-25-dashboard.md`;
+- data-layer design sections 1–2, spec `docs/superpowers/specs/2026-09-25-data-layer-design.md`, plan (commit `ee0b0f9`; plan files removed from the tree in `4046774`);
+- dashboard design sections 1–3 (with the Step 5 scope folded in), spec `docs/superpowers/specs/2026-09-25-dashboard-design.md`, plan (commit `98298ba`);
+- UI refresh design (direction A from mockups), spec `docs/superpowers/specs/2026-09-25-ui-refresh-design.md`, plan (commit `5b4bb3b`);
 - the execution method for both plans.
 
 **Choices the developer made or overrode:**
@@ -145,7 +169,8 @@ Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirem
 **Verification delegated to the AI:** the developer set these up but didn't run them personally in the transcript.
 - TDD per step (tests watched failing, then passing).
 - Hook runs on every commit.
-- `pnpm validate`: typecheck, lint, 243 tests, build, coverage 100 % (24/24).
+- `pnpm validate`: typecheck, lint, tests, build, coverage — 309 tests and 100 % (26/26) on `fix/sdd-audit`.
+- `pnpm check:browser` (phone layout, filter feedback, server-side filtering, themes, console errors) and `pnpm test:contract` against the live API — both in CI since `7496992`.
 - The live-API contract test (8/8).
 - Production smoke tests with `next start`.
 - 360 px layout measurement and rapid-click checks in headless Chrome.
@@ -165,6 +190,12 @@ Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirem
 8. **URL state for tasks** (22:20). The developer extended the design so the task-status filter is also kept in the URL.
 9. **Too many questions** (22:24–22:27). The developer rejected a three-question clarification prompt and supplied Step 5 instead, which showed that "malformed YAML" referred to the self-validation script, not the data layer. This was saved to memory: make and flag decisions instead of batching questions.
 
+10a. **Branch choice** (23:45). The developer rejected a new branch for the UI refresh and kept the work on `feat/dashboard`.
+10b. **"Not fetching from live API"** (≈00:05). Investigated before changing anything: the dev server was in API mode, opened 5 HTTPS connections to the API per page and rendered API-filtered data. The confusion came from the design (the server calls the API, so nothing shows in the browser's Network tab); the README now says so.
+10c. **PR-summary failures** (00:14). The developer identified the cause: no API credits. The action and its SDK dependency were removed.
+10e. **History rewrite** (00:50). After a second audit rated commit traceability PARTIAL, the developer asked to rewrite history: every commit now carries a `Refs: SCD-…` footer (early subjects reworded to Conventional Commits), verified by commitlint over the whole history and identical file trees. Hashes in this document were updated.
+10d. **SDD audit** (00:07–00:30). The developer asked for a four-pillar evaluation and then for every violation to be fixed: commit `Refs:` rule, per-`describe` `@req` annotations with a guard test, `@req` on every config file, shared enums/ordering/result types, one declaration per theme token, automated browser/contract/deployment checks, no dead code, and an accurate README.
+
 **Corrections found by verification the developer set up** (reviewer subagents, TDD, browser checks), all fixed with a failing-then-passing test:
 
 10. **Data layer:** `getRequirement(".")` or `("..")` escaped to other endpoints in API mode. A unit test depended on the developer's shell environment and could block unrelated commits.
@@ -176,9 +207,11 @@ Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirem
 
 ## 7. Self-Assessment — SDD pillars
 
+State after the audit fixes on `fix/sdd-audit`.
+
 | Pillar | Well covered | Needs improvement |
 |---|---|---|
-| **Traceability** | `requirements.yaml` is the single source (24 requirements, each with a verifiable MUST/SHOULD). Every source and test file carries `@req` ids. `pnpm check:coverage` reports covered/partial/missing plus orphans, and currently shows **100 % (24/24 covered, 0 partial)**. Specs and plans in `docs/superpowers/` record why each design was chosen. Commit messages map to tasks. | `@req` comments are per **test file**, not per test case (the Step 4 wording "every test" may mean the latter). Test vs implementation is decided by file name. SCD-DEP-002 (Vercel) counts as covered on thin evidence: a config comment and a README text test. |
-| **DRY** | Zod schemas → TypeScript types (no parallel interfaces). One request pipeline for API and mock mode. Status labels, icons and colours in one table (`STATUS_PRESENTATION`). Query parsing and filtering shared by all views. A shared id pattern for the scanner (`scripts/coverage/ids.ts`). Theme colours only as CSS tokens (a test enforces this). | Sorting and filtering logic exists twice: in the mock server (`src/lib/api/mock.ts`) and in the UI (`src/lib/dashboard/query.ts`). Enum value lists are repeated in `options.ts` and the Zod enums. Dark-theme tokens are written twice in `globals.css` (a test guarantees they stay identical). |
-| **Deterministic Enforcement** | Husky pre-commit (tests + build), pre-push (+ typecheck + lint), commit-msg (commitlint). `pnpm validate` chains typecheck → lint → tests → build → coverage gate, with defined exit codes (0/1/2). CI runs `pnpm validate` on PRs and `main`. Token contrast and "no hard-coded colours" are unit-tested; axe runs on every view. | The CI workflow hasn't run yet (the branch isn't pushed). The coverage gate isn't in the local hooks (deliberately, so work-in-progress can be pushed). The live-API contract test is opt-in. The PR-summary action is non-deterministic by nature and its output wasn't observed on merged PRs. Real-browser checks (360 px, rapid clicks) were one-off scripts, not part of CI. |
-| **Parsimony** | Few runtime dependencies (Next, React, Zod). No UI or chart library: stat tiles and bars are plain markup with CSS tokens. The coverage script uses Node's built-in TypeScript support instead of a runner. Small, single-purpose modules. No Playwright. | Extras beyond the task: the PR-summary action pulls in `@anthropic-ai/sdk`, and there's the commitlint toolchain. Large process artifacts are committed (a 4,006-line implementation plan and design specs). The test tooling (jsdom, Testing Library, axe) is heavy for the size of the UI. |
+| **Traceability** | 26 requirements, each with a MUST/SHOULD description (test-enforced). `@req` on every tracked source, script, hook, workflow and config file, and on every `describe` block (guarded by tests). `pnpm check:coverage --strict`: **100 % (26/26 covered, 0 partial, 0 orphans)**. **Every commit** in history carries `Refs: SCD-…` (history rewritten; commitlint passes over all commits), enforced for new commits by the commit-msg hook and in CI for every PR commit. | Commit `Refs:` are checked for format, not for whether the listed requirements match the change. |
+| **DRY** | API types only from the Zod schemas; enum values once (`src/lib/api/enums.ts`); row ordering once (`src/lib/api/sort.ts`, shared by the mock server and the UI); the coverage script reuses the app's model and `Result` types; each theme token declared once via `light-dark()`. A guard test (`scripts/dry.test.ts`) fails on regressions. | The mock server keeps its own single-value filter on purpose, to mirror the API's behaviour. |
+| **Deterministic Enforcement** | Hooks: pre-commit (tests, build), pre-push (+ typecheck, lint, coverage gate), commit-msg (Conventional Commits + `Refs:`). CI: PR commit messages, `pnpm validate` (strict coverage), `pnpm check:browser` (real Chrome, failures as annotations) and `pnpm test:contract` (live API), on Node 24 actions. Production deployments are browser-checked. | The browser check failed on GitHub's runner in the first CI run; its failures now appear as annotations so the cause can be read and fixed. |
+| **Parsimony** | Runtime dependencies: Next, React, Zod. No UI or chart library; no Playwright. The PR-summary action, its SDK dependency, the dead `formatTaskStatus` and 8.3k lines of plan documents were removed; the OpenAPI contract is committed once under `docs/api/`. README is 69 lines. | Commitlint and the testing libraries are the largest dev dependencies; both are justified by requirements (SCD-VAL-003, SCD-A11Y-002). |

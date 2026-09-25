@@ -15,7 +15,7 @@ export function KpiCard({
   children?: ReactNode;
 }) {
   return (
-    <div role="group" aria-label={label} className={`rounded-xl bg-surface p-5 shadow-card ${className}`}>
+    <div role="group" aria-label={label} className={`surface-card p-5 ${className}`}>
       <p className="text-xs font-medium text-muted">{label}</p>
       <p className="mt-2 text-3xl font-semibold tracking-tight">{value}</p>
       {detail ? <p className="mt-1 text-sm text-ink-2">{detail}</p> : null}

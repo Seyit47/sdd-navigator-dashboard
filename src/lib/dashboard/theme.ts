@@ -1,7 +1,7 @@
 // @req SCD-THEME-001
 export type Theme = "light" | "dark";
 
-export const THEME_STORAGE_KEY = "theme";
+const THEME_STORAGE_KEY = "theme";
 
 /**
  * Inlined in <head> so a stored choice applies before first paint. Without a stored

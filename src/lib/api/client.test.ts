@@ -35,6 +35,7 @@ const task = {
   updatedAt: "2026-02-20T11:00:00Z",
 };
 
+// @req SCD-API-003
 describe("request building", () => {
   it("sends requirement filters as query params", async () => {
     const { api, calls } = stubTransport({ status: 200, body: [] });
@@ -81,6 +82,7 @@ describe("request building", () => {
   });
 });
 
+// @req SCD-API-003
 describe("successful responses", () => {
   it("returns parsed data", async () => {
     const { api } = stubTransport({ status: 200, body: [requirement] });
@@ -98,6 +100,7 @@ describe("successful responses", () => {
   });
 });
 
+// @req SCD-API-003, SCD-STATE-002
 describe("error mapping", () => {
   it("maps a rejected transport to a network error", async () => {
     const { api } = stubTransport(new Error("Failed to fetch"));

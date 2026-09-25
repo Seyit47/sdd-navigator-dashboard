@@ -28,6 +28,7 @@ const query = (patch: Partial<DashboardQuery>): DashboardQuery => ({ ...DEFAULT_
 const ids = (result: Awaited<ReturnType<typeof fetchRequirements>> | Awaited<ReturnType<typeof fetchTasks>>) =>
   result.ok ? result.data.map((row) => row.id) : result.error;
 
+// @req SCD-FLT-001, SCD-SORT-001
 describe("fetchRequirements", () => {
   it("sends one request with the default sort when nothing is filtered", async () => {
     const { api, calls } = recordingClient();
@@ -90,6 +91,7 @@ describe("fetchRequirements", () => {
   });
 });
 
+// @req SCD-FLT-003
 describe("fetchTasks", () => {
   it("sends no parameters without a task filter", async () => {
     const { api, calls } = recordingClient();

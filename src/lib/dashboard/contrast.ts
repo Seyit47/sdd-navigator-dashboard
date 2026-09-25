@@ -5,7 +5,7 @@ function channel(value: number): number {
   return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 }
 
-export function relativeLuminance(hex: string): number {
+function relativeLuminance(hex: string): number {
   const match = /^#([0-9a-f]{6})$/i.exec(hex.trim());
   if (!match) throw new Error(`Expected a #rrggbb colour, got "${hex}"`);
   const n = parseInt(match[1], 16);

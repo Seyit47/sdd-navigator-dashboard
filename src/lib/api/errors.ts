@@ -7,7 +7,7 @@ export type ApiError =
   | { kind: "http"; status: number; message: string }
   | { kind: "invalid_response"; message: string; issues: string[] };
 
-export type Result<T> = { ok: true; data: T } | { ok: false; error: ApiError };
+export type Result<T, E = ApiError> = { ok: true; data: T } | { ok: false; error: E };
 
 export function ok<T>(data: T): Result<T> {
   return { ok: true, data };

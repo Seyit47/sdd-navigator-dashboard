@@ -14,6 +14,7 @@ beforeEach(() => {
   resetNavigation();
 });
 
+// @req SCD-STATE-002, SCD-A11Y-002
 describe("ErrorPanel", () => {
   it("shows the title and the API message as an alert", () => {
     render(<ErrorPanel title="Couldn't load project stats" error={{ kind: "http", status: 500, message: "Scanner crashed" }} />);
@@ -43,6 +44,7 @@ describe("ErrorPanel", () => {
   });
 });
 
+// @req SCD-STATE-001
 describe("LoadingSkeleton", () => {
   it("announces loading with a status role", () => {
     render(<LoadingSkeleton label="Loading dashboard…" />);

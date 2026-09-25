@@ -4,7 +4,7 @@ import type { Annotation, Task } from "@/lib/api";
 export function OrphanPanel({ annotations, tasks }: { annotations: Annotation[]; tasks: Task[] }) {
   const total = annotations.length + tasks.length;
   return (
-    <section id="orphans" aria-labelledby="orphans-heading" className="rounded-xl bg-surface shadow-card">
+    <section id="orphans" aria-labelledby="orphans-heading" className="surface-card">
       <details open className="group">
         <summary className="flex cursor-pointer list-none items-center gap-2 p-5">
           <h2 id="orphans-heading" className="text-base font-semibold tracking-tight">

@@ -21,7 +21,7 @@ function notify(): void {
   for (const listener of listeners) listener();
 }
 
-export const historyReplace = vi.fn((...args: Parameters<History["replaceState"]>) => {
+const historyReplace = vi.fn((...args: Parameters<History["replaceState"]>) => {
   realReplaceState(...args);
   notify();
 });

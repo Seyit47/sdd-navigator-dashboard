@@ -11,6 +11,7 @@ async function renderDetail(id: string, backHref = "/") {
   return render(<RequirementDetailView requirement={requirement} backHref={backHref} />);
 }
 
+// @req SCD-UI-004, SCD-UI-007, SCD-A11Y-002
 describe("RequirementDetailView", () => {
   it("shows every field, the status and the assessment", async () => {
     await renderDetail("FR-API-002");

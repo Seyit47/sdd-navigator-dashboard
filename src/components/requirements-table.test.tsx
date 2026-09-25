@@ -35,6 +35,7 @@ const rowIds = () =>
 const segment = (group: string, name: string) =>
   within(screen.getByRole("group", { name: group })).getByRole("button", { name });
 
+// @req SCD-UI-003, SCD-FLT-001, SCD-FLT-002, SCD-SORT-001, SCD-STATE-003, SCD-UI-007, SCD-A11Y-002
 describe("RequirementsTable", () => {
   it("renders the rows it is given, sorted by id", () => {
     renderTable();

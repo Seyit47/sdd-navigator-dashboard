@@ -22,6 +22,7 @@ function renderFilter<T extends string>(options: readonly T[], selected: T[]) {
   return { onChange, button, ...view };
 }
 
+// @req SCD-FLT-001, SCD-UI-007, SCD-A11Y-002
 describe("SegmentedFilter", () => {
   it("presses All when nothing is selected", () => {
     const { button } = renderFilter(TYPES, []);
@@ -60,6 +61,7 @@ describe("SegmentedFilter", () => {
   });
 });
 
+// @req SCD-UI-003, SCD-UI-007
 describe("StatusPill", () => {
   it("shows a capitalised label on the status tint", () => {
     render(<StatusPill status="partial" />);
@@ -68,6 +70,7 @@ describe("StatusPill", () => {
   });
 });
 
+// @req SCD-UI-007
 describe("Card", () => {
   it("is a region named by its title", () => {
     render(<Card titleId="t" title="Requirements">body</Card>);
@@ -80,6 +83,7 @@ describe("Card", () => {
   });
 });
 
+// @req SCD-STATE-003
 describe("EmptyState", () => {
   it("shows the title, hint and action", () => {
     render(<EmptyState title="Nothing here" hint="Try again" action={<button type="button">Clear</button>} />);

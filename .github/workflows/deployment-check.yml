@@ -1,0 +1,23 @@
+# @req SCD-DEP-002, SCD-VAL-002
+# After Vercel reports a successful Production deployment, run the browser checks against it.
+name: Deployment check
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-checks:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+
+      - name: Browser checks against Production
+        env:
+          BASE_URL: ${{ github.event.deployment_status.environment_url }}
+        run: pnpm check:browser

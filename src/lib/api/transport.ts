@@ -1,5 +1,5 @@
 // @req SCD-API-003
-export type HttpMethod = "GET" | "POST";
+type HttpMethod = "GET" | "POST";
 
 export interface TransportRequest {
   method: HttpMethod;
@@ -20,7 +20,7 @@ export interface Transport {
   send(request: TransportRequest): Promise<TransportResponse>;
 }
 
-export const REQUEST_TIMEOUT_MS = 10_000;
+const REQUEST_TIMEOUT_MS = 10_000;
 
 export function buildUrl(
   baseUrl: string,

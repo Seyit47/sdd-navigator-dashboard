@@ -25,6 +25,7 @@ const parse = (search: string) => parseDashboardQuery(new URLSearchParams(search
 const query = (patch: Partial<DashboardQuery>): DashboardQuery => ({ ...DEFAULT_QUERY, ...patch });
 const ids = (rows: { id: string }[]) => rows.map((row) => row.id);
 
+// @req SCD-FLT-001, SCD-FLT-002, SCD-FLT-003, SCD-SORT-001
 describe("parseDashboardQuery", () => {
   it("returns the defaults for an empty query", () => {
     expect(parse("")).toEqual(DEFAULT_QUERY);
@@ -55,6 +56,7 @@ describe("parseDashboardQuery", () => {
   });
 });
 
+// @req SCD-FLT-001, SCD-FLT-002, SCD-FLT-003, SCD-SORT-001
 describe("serializeDashboardQuery", () => {
   it("is empty for the default query", () => {
     expect(serializeDashboardQuery(DEFAULT_QUERY)).toBe("");
@@ -80,6 +82,7 @@ describe("serializeDashboardQuery", () => {
   });
 });
 
+// @req SCD-UI-004
 describe("searchParamsFromRecord", () => {
   it("expands arrays and skips undefined values", () => {
     expect(searchParamsFromRecord({ type: "FR", status: ["covered", "partial"], q: undefined }).toString()).toBe(
@@ -88,6 +91,7 @@ describe("searchParamsFromRecord", () => {
   });
 });
 
+// @req SCD-FLT-001
 describe("toggleValue", () => {
   it("adds a value in canonical order", () => {
     expect(toggleValue(["missing"], "covered", COVERAGE_STATUSES)).toEqual(["covered", "missing"]);
@@ -98,6 +102,7 @@ describe("toggleValue", () => {
   });
 });
 
+// @req SCD-FLT-001, SCD-FLT-002, SCD-SORT-001
 describe("applyRequirementQuery", () => {
   it("returns every row sorted by id by default", () => {
     expect(ids(applyRequirementQuery(requirements, DEFAULT_QUERY))).toEqual([
@@ -150,6 +155,7 @@ describe("applyRequirementQuery", () => {
   });
 });
 
+// @req SCD-FLT-003
 describe("applyTaskQuery", () => {
   it("returns every task without a filter", () => {
     expect(applyTaskQuery(tasks, DEFAULT_QUERY)).toHaveLength(6);

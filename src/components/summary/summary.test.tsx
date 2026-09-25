@@ -16,6 +16,7 @@ beforeAll(async () => {
 const card = (name: string) => within(screen.getByRole("group", { name }));
 const segment = (container: HTMLElement, status: string) => container.querySelector(`[data-status="${status}"]`);
 
+// @req SCD-UI-001, SCD-UI-002, SCD-UI-007, SCD-A11Y-002
 describe("SummaryPanel", () => {
   it("shows the overview heading and the last scan", () => {
     render(<SummaryPanel stats={stats} />);

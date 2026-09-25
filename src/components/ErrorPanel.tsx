@@ -6,7 +6,7 @@ import type { ApiError } from "@/lib/api";
 export function ErrorPanel({ title, error }: { title: string; error: ApiError }) {
   const router = useRouter();
   return (
-    <div role="alert" className="rounded-xl border-l-4 border-critical bg-surface p-5 shadow-card">
+    <div role="alert" className="surface-card border-l-4 border-critical p-5">
       <p className="font-semibold">
         <span aria-hidden="true">✕ </span>
         {title}
