@@ -4,65 +4,37 @@
    Minimalist "soft cards" design. Every colour is a token; components use the utilities
    mapped in @theme. Text tokens (ink, ink-2, muted, link) are >= 4.5:1 on plane, surface and
    surface-2, and --ink is >= 4.5:1 on every tint, in both themes (theme-contrast.test.ts).
+   Each token is declared once; light-dark() holds both theme values.
    Status colours are fixed across themes and used only for marks, never for text. */
 
 :root {
-  color-scheme: light;
-  --plane: #fafaf9;
-  --surface: #ffffff;
-  --surface-2: #f4f4f2;
-  --ink: #111110;
-  --ink-2: #57564f;
-  --muted: #6b6a66;
-  --link: #1c5cab;
-  --hairline: rgba(17, 17, 16, 0.08);
-  --shadow: 0 1px 2px rgba(17, 17, 16, 0.04), 0 1px 3px rgba(17, 17, 16, 0.06);
-  --accent: #2a78d6;
-  --focus: #2a78d6;
+  /* The OS preference picks the theme; the toggle overrides it with data-theme. */
+  color-scheme: light dark;
+  --plane: light-dark(#fafaf9, #0e0e0d);
+  --surface: light-dark(#ffffff, #191918);
+  --surface-2: light-dark(#f4f4f2, #232321);
+  --ink: light-dark(#111110, #f5f5f4);
+  --ink-2: light-dark(#57564f, #c3c2b7);
+  --muted: light-dark(#6b6a66, #8d8c86);
+  --link: light-dark(#1c5cab, #86b6ef);
+  --hairline: light-dark(rgba(17, 17, 16, 0.08), rgba(255, 255, 255, 0.08));
+  --shadow: 0 1px 2px light-dark(rgba(17, 17, 16, 0.04), transparent), 0 1px 3px light-dark(rgba(17, 17, 16, 0.06), transparent);
+  --accent: light-dark(#2a78d6, #3987e5);
+  --focus: light-dark(#2a78d6, #3987e5);
   --good: #0ca30c;
   --warning: #fab219;
   --critical: #d03b3b;
-  --good-tint: #e8f6e8;
-  --warning-tint: #fdf3dc;
-  --critical-tint: #fbe9e9;
+  --good-tint: light-dark(#e8f6e8, #15291a);
+  --warning-tint: light-dark(#fdf3dc, #2e2612);
+  --critical-tint: light-dark(#fbe9e9, #321a1a);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --plane: #0e0e0d;
-    --surface: #191918;
-    --surface-2: #232321;
-    --ink: #f5f5f4;
-    --ink-2: #c3c2b7;
-    --muted: #8d8c86;
-    --link: #86b6ef;
-    --hairline: rgba(255, 255, 255, 0.08);
-    --shadow: none;
-    --accent: #3987e5;
-    --focus: #3987e5;
-    --good-tint: #15291a;
-    --warning-tint: #2e2612;
-    --critical-tint: #321a1a;
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --plane: #0e0e0d;
-  --surface: #191918;
-  --surface-2: #232321;
-  --ink: #f5f5f4;
-  --ink-2: #c3c2b7;
-  --muted: #8d8c86;
-  --link: #86b6ef;
-  --hairline: rgba(255, 255, 255, 0.08);
-  --shadow: none;
-  --accent: #3987e5;
-  --focus: #3987e5;
-  --good-tint: #15291a;
-  --warning-tint: #2e2612;
-  --critical-tint: #321a1a;
 }
 
 @theme inline {

@@ -6,17 +6,28 @@ import { contrastRatio } from "@/lib/dashboard/contrast";
 
 const css = readFileSync("src/app/globals.css", "utf8");
 
-function tokens(block: RegExp): Record<string, string> {
-  const match = block.exec(css);
-  if (!match) throw new Error(`Block ${block} not found in globals.css`);
+/** Custom properties declared in the first `:root { … }` block. */
+function rootTokens(): Record<string, string> {
+  const match = /:root\s*\{([^}]*)\}/.exec(css);
+  if (!match) throw new Error(":root block not found in globals.css");
   const found: Record<string, string> = {};
   for (const [, name, value] of match[1].matchAll(/--([a-z0-9-]+):\s*([^;]+);/g)) found[name] = value.trim();
   return found;
 }
 
-const light = tokens(/:root\s*\{([^}]*)\}/);
-const darkMedia = tokens(/:root:not\(\[data-theme="light"\]\)\s*\{([^}]*)\}/);
-const darkToggle = tokens(/:root\[data-theme="dark"\]\s*\{([^}]*)\}/);
+/** Resolves `light-dark(a, b)` to a (light) or b (dark); other values apply to both themes. */
+function resolve(tokens: Record<string, string>, theme: "light" | "dark"): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(tokens).map(([name, value]) => {
+      const pair = /^light-dark\(\s*([^,]+?)\s*,\s*([^)]+?)\s*\)$/.exec(value);
+      return [name, pair ? (theme === "light" ? pair[1] : pair[2]) : value];
+    }),
+  );
+}
+
+const root = rootTokens();
+const light = resolve(root, "light");
+const dark = resolve(root, "dark");
 
 const TEXT = ["ink", "ink-2", "muted", "link"];
 const BACKGROUNDS = ["surface", "plane", "surface-2"];
@@ -25,7 +36,7 @@ const textPairs = TEXT.flatMap((text) => BACKGROUNDS.map((background) => [text, 
 
 describe.each([
   ["light", light],
-  ["dark", darkToggle],
+  ["dark", dark],
 ])("%s theme", (_theme, t) => {
   it.each(textPairs)("--%s on --%s is at least 4.5:1", (text, background) => {
     expect(contrastRatio(t[text], t[background])).toBeGreaterThanOrEqual(4.5);
@@ -41,8 +52,19 @@ describe("theme tokens", () => {
     expect([light.good, light.warning, light.critical]).toEqual(["#0ca30c", "#fab219", "#d03b3b"]);
   });
 
-  it("use identical dark values for the OS preference and the toggle", () => {
-    expect(darkMedia).toEqual(darkToggle);
+  it("declares every token once, in :root, with both themes via light-dark()", () => {
+    const declarations = [...css.matchAll(/^\s*--([a-z0-9-]+):/gm)].map((m) => m[1]);
+    const tokenBlock = /@theme inline\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    const outsideTheme = declarations.filter((name) => !tokenBlock.includes(`--${name}:`));
+    expect(outsideTheme.sort()).toEqual(Object.keys(root).sort());
+    for (const name of ["plane", "surface", "surface-2", "ink", "ink-2", "muted", "link", "good-tint", "warning-tint", "critical-tint"]) {
+      expect(root[name]).toMatch(/^light-dark\(/);
+    }
+  });
+
+  it("switches themes with color-scheme only", () => {
+    expect(css).toMatch(/:root\[data-theme="light"\]\s*\{\s*color-scheme:\s*light;\s*\}/);
+    expect(css).toMatch(/:root\[data-theme="dark"\]\s*\{\s*color-scheme:\s*dark;\s*\}/);
   });
 
   it("are the only colours used by components", () => {
