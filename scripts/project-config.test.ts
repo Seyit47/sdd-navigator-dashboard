@@ -1,4 +1,5 @@
 // @req SCD-VAL-002, SCD-DEP-001, SCD-DEP-002
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
@@ -36,6 +37,21 @@ describe("deterministic checks", () => {
 
   it("requires a Node version that runs TypeScript natively", () => {
     expect(pkg.engines?.node).toBe(">=22.18");
+  });
+});
+
+describe("traceability", () => {
+  it("every tracked source, script, hook and config file carries an @req annotation", () => {
+    const files = execFileSync("git", ["ls-files"], { encoding: "utf8" })
+      .split("\n")
+      .filter(
+        (f) =>
+          /^(src|scripts)\/.+\.(?:[cm]?[jt]sx?|css)$/.test(f) ||
+          /^\.husky\/[^_/][^/]*$/.test(f) ||
+          /^[^/]+\.config\.[cm]?[jt]s$/.test(f),
+      );
+    expect(files.length).toBeGreaterThan(40);
+    expect(files.filter((f) => !readFileSync(f, "utf8").includes("@req"))).toEqual([]);
   });
 });
 

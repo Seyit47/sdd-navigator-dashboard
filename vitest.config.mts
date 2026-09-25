@@ -1,3 +1,4 @@
+// @req SCD-VAL-002
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
