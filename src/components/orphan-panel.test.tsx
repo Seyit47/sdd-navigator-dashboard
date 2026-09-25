@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// @req SCD-UI-006, SCD-A11Y-002
+// @req SCD-UI-006, SCD-UI-007, SCD-A11Y-002
 import { render, screen, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Annotation, Task } from "@/lib/api";
@@ -29,14 +29,13 @@ describe("OrphanPanel", () => {
       ["src/api/legacy.rs", "5", "FR-LEGACY-001", "impl"],
       ["tests/api_test.rs", "88", "FR-API-099", "test"],
     ]);
-    expect(cells(screen.getByRole("table", { name: "Tasks (1)" }))).toEqual([
-      ["TASK-006", "Add CSV export", "FR-EXPORT-001"],
-    ]);
+    expect(cells(screen.getByRole("table", { name: "Tasks (1)" }))).toEqual([["TASK-006", "Add CSV export", "FR-EXPORT-001"]]);
   });
 
-  it("is a collapsible section, open by default, with the total in its heading", () => {
+  it("is a collapsible card, open by default, with a count badge", () => {
     const { container } = render(<OrphanPanel annotations={annotations} tasks={tasks} />);
-    expect(screen.getByRole("heading", { name: "Orphans (3)" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Orphans" })).toBeInTheDocument();
+    expect(container.querySelector("section#orphans summary")).toHaveTextContent("Orphans3");
     expect(container.querySelector("section#orphans details")).toHaveAttribute("open");
   });
 
