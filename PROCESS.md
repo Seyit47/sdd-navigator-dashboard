@@ -55,6 +55,9 @@ Tool calls in the main session: Bash 279, Write 21, AskUserQuestion 13, Skill 12
 | 00:07–00:10 | SDD audit | evaluate the repo against the four SDD pillars | A rated report with 15 violations | — |
 | 00:13–00:30 | Audit fixes | "fix all these" | All 15 fixed on `fix/sdd-audit` (see Timeline and Course Corrections) | Chose to remove the PR-summary action (no API credits) and delete the plan documents |
 | 00:35–01:10 | Second audit + fixes | re-evaluate, then "fix them all rewriting history" | Strict coverage gate, workflow scanning, `Refs:` on every commit type and in CI, shared setup action on Node 24 actions, card-surface utilities, no internal-only exports, browser-check annotations; **history rewritten** so every commit carries `Refs:` | — |
+| 09:16–09:22 | Third audit + fixes | re-evaluate; "fix them and add the spec driven development rules to `CLAUDE.md`" | `Refs:` checked on every pushed commit, merges included; status labels derived from `formatLabel`; SDD and working rules in `CLAUDE.md`; PR #8 | Reworded the merge commits of PRs #7 and #8 themselves after CI rejected them (no `Refs:`), and switched the repository to rebase-merge |
+| 09:39–09:43 | Deployment check failure | "Chrome did not start" on Production, commit references failing | Production check points at the public URL (the per-deployment URL is behind Vercel login) and asserts API mode; Chrome start-up diagnostics and a 60 s wait; PR #9 | — |
+| 09:54–10:10 | Final audit + polish | "evaluate final time", then "fix them also" | All four pillars PASS; three minor items fixed on `fix/final-polish`: unknown push base after a force-push, data-mode labels named once, this document brought up to date | — |
 
 ### Subagent sessions (started from session 3)
 
@@ -98,8 +101,12 @@ Times are UTC, taken from commit timestamps and transcript events.
 | 27 | Audit fixes on `fix/sdd-audit` (`4046774` → last commit) | 00:13 | 00:31 | 18 min |
 | 28 | Second audit; CI found the browser check failing on GitHub's runner | 00:35 | 00:45 | 10 min |
 | 29 | Second round of fixes; history rewritten with `git filter-branch` (messages only, trees identical; backups tagged `backup/*-before-rewrite`) | 00:45 | 01:10 | 25 min |
+| 30 | Third audit; merge commits rejected by the new commit-references check, reworded by the developer | 09:16 | 09:20 | 4 min |
+| 31 | Third round of fixes (`1db4c9c`, `f04107c`, `121ab30`, `3ff7b92`) → PR #8 (`33004a6`) | 09:20 | 09:29 | 9 min |
+| 32 | Production browser check: "Chrome did not start" → diagnostics (`cc4ee9c`, PR #9); next run passed in 16 s | 09:39 | 09:52 | 13 min |
+| 33 | Final audit (all pillars PASS) and polish on `fix/final-polish` | 09:54 | 10:10 | 16 min |
 
-Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirements spec (21:16, squash), #4 data layer (22:04), #5 dashboard, UI refresh and API-side filtering (00:08). The audit fixes are on `fix/sdd-audit`.
+Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirements spec (21:16, squash), #4 data layer (22:04), #5 dashboard, UI refresh and API-side filtering (00:08), #7 audit fixes (`cb683e8`), #8 third-round fixes (`33004a6`), #9 Chrome diagnostics (`cc4ee9c`). The final polish is on `fix/final-polish`.
 
 ## 4. Key Decisions
 
@@ -169,7 +176,7 @@ Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirem
 **Verification delegated to the AI:** the developer set these up but didn't run them personally in the transcript.
 - TDD per step (tests watched failing, then passing).
 - Hook runs on every commit.
-- `pnpm validate`: typecheck, lint, tests, build, coverage — 309 tests and 100 % (26/26) on `fix/sdd-audit`.
+- `pnpm validate`: typecheck, lint, tests, build, coverage — 326 tests and 100 % (26/26) on `fix/final-polish`.
 - `pnpm check:browser` (phone layout, filter feedback, server-side filtering, themes, console errors) and `pnpm test:contract` against the live API — both in CI since `7496992`.
 - The live-API contract test (8/8).
 - Production smoke tests with `next start`.
@@ -193,8 +200,10 @@ Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirem
 10a. **Branch choice** (23:45). The developer rejected a new branch for the UI refresh and kept the work on `feat/dashboard`.
 10b. **"Not fetching from live API"** (≈00:05). Investigated before changing anything: the dev server was in API mode, opened 5 HTTPS connections to the API per page and rendered API-filtered data. The confusion came from the design (the server calls the API, so nothing shows in the browser's Network tab); the README now says so.
 10c. **PR-summary failures** (00:14). The developer identified the cause: no API credits. The action and its SDK dependency were removed.
-10e. **History rewrite** (00:50). After a second audit rated commit traceability PARTIAL, the developer asked to rewrite history: every commit now carries a `Refs: SCD-…` footer (early subjects reworded to Conventional Commits), verified by commitlint over the whole history and identical file trees. Hashes in this document were updated.
 10d. **SDD audit** (00:07–00:30). The developer asked for a four-pillar evaluation and then for every violation to be fixed: commit `Refs:` rule, per-`describe` `@req` annotations with a guard test, `@req` on every config file, shared enums/ordering/result types, one declaration per theme token, automated browser/contract/deployment checks, no dead code, and an accurate README.
+10e. **History rewrite** (00:50). After a second audit rated commit traceability PARTIAL, the developer asked to rewrite history: every commit now carries a `Refs: SCD-…` footer (early subjects reworded to Conventional Commits), verified by commitlint over the whole history and identical file trees. Hashes in this document were updated.
+10f. **Merge commits without `Refs:`** (09:16–09:20). The new CI check covers every pushed commit, merges included, so PRs #7 and #8 merged with the merge button failed it. The developer reworded those merge commits and allowed only rebase-merge; the check itself was kept strict. A later force-push failed the same check because its base commit was no longer in history; the script now checks every commit when the base is unknown.
+10g. **Production browser check** (09:39). The developer reported "Chrome did not start" after a Production deploy. The check had also been pointed at the per-deployment URL, which Vercel protects with a login; it now uses the public URL from `package.json` and asserts API mode. Chrome's exit code and stderr are now reported; the cause was a slow cold start.
 
 **Corrections found by verification the developer set up** (reviewer subagents, TDD, browser checks), all fixed with a failing-then-passing test:
 
@@ -207,11 +216,11 @@ Merged PRs: #1 build hooks (21:02), #3 conventional commits (21:11), #2 requirem
 
 ## 7. Self-Assessment — SDD pillars
 
-State after the audit fixes on `fix/sdd-audit`.
+State after the final polish on `fix/final-polish` (final audit: all four pillars PASS).
 
 | Pillar | Well covered | Needs improvement |
 |---|---|---|
-| **Traceability** | 26 requirements, each with a MUST/SHOULD description (test-enforced). `@req` on every tracked source, script, hook, workflow and config file, and on every `describe` block (guarded by tests). `pnpm check:coverage --strict`: **100 % (26/26 covered, 0 partial, 0 orphans)**. **Every commit** in history carries `Refs: SCD-…` (history rewritten; commitlint passes over all commits), enforced for new commits by the commit-msg hook and in CI for every PR commit. | Commit `Refs:` are checked for format, not for whether the listed requirements match the change. |
-| **DRY** | API types only from the Zod schemas; enum values once (`src/lib/api/enums.ts`); row ordering once (`src/lib/api/sort.ts`, shared by the mock server and the UI); the coverage script reuses the app's model and `Result` types; each theme token declared once via `light-dark()`. A guard test (`scripts/dry.test.ts`) fails on regressions. | The mock server keeps its own single-value filter on purpose, to mirror the API's behaviour. |
-| **Deterministic Enforcement** | Hooks: pre-commit (tests, build), pre-push (+ typecheck, lint, coverage gate), commit-msg (Conventional Commits + `Refs:`). CI: PR commit messages, `pnpm validate` (strict coverage), `pnpm check:browser` (real Chrome, failures as annotations) and `pnpm test:contract` (live API), on Node 24 actions. Production deployments are browser-checked. | The browser check failed on GitHub's runner in the first CI run; its failures now appear as annotations so the cause can be read and fixed. |
+| **Traceability** | 26 requirements, each with a MUST/SHOULD description (test-enforced). `@req` on every tracked source, script, hook, workflow and config file, and on every `describe` block (guarded by tests). `pnpm check:coverage --strict`: **100 % (26/26 covered, 0 partial, 0 orphans)**. **Every commit** in history (63, merges included) carries `Refs: SCD-…`, enforced by the commit-msg hook, commitlint on PR commits and `scripts/check-commit-refs.ts` on every pushed commit. | Commit `Refs:` are checked for format, not for whether the listed requirements match the change. |
+| **DRY** | API types only from the Zod schemas; enum values once (`src/lib/api/enums.ts`); row ordering once (`src/lib/api/sort.ts`, shared by the mock server and the UI); the coverage script reuses the app's model and `Result` types; each theme token declared once via `light-dark()`; status labels derived from `formatLabel`; data-mode labels named once (`src/lib/api/mode-labels.ts`) and shared by the header and the browser check. A guard test (`scripts/dry.test.ts`) fails on regressions. | The mock server keeps its own single-value filter on purpose, to mirror the API's behaviour. |
+| **Deterministic Enforcement** | Hooks: pre-commit (tests, build), pre-push (+ typecheck, lint, coverage gate), commit-msg (Conventional Commits + `Refs:`). CI: PR commit messages, `pnpm validate` (strict coverage), `pnpm check:browser` (real Chrome, failures as annotations) and `pnpm test:contract` (live API), on Node 24 actions. Production deployments are browser-checked at the public URL, including the data mode. | Browser checks depend on Chrome starting on the runner; start-up failures are reported with Chrome's output rather than retried. |
 | **Parsimony** | Runtime dependencies: Next, React, Zod. No UI or chart library; no Playwright. The PR-summary action, its SDK dependency, the dead `formatTaskStatus` and 8.3k lines of plan documents were removed; the OpenAPI contract is committed once under `docs/api/`. README is 69 lines. | Commitlint and the testing libraries are the largest dev dependencies; both are justified by requirements (SCD-VAL-003, SCD-A11Y-002). |
