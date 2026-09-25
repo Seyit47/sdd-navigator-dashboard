@@ -57,6 +57,16 @@ describe("single source of truth", () => {
     expect(unused).toEqual([]);
   });
 
+  it("derives status labels from formatLabel", () => {
+    expect(read("src/lib/dashboard/coverage.ts")).not.toMatch(/\blabel:\s*"/);
+  });
+
+  it("derives expected colours and rows in the browser check instead of hard-coding them", () => {
+    const script = read("scripts/check-browser.mjs");
+    expect(script).not.toMatch(/rgb\(\d/);
+    expect(script).not.toMatch(/"(?:FR|AR)-[A-Z]+-\d{3}"/);
+  });
+
   it("has one label formatter", () => {
     expect(filesContaining(/export function formatTaskStatus\b/)).toEqual([]);
   });

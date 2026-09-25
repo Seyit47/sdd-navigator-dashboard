@@ -1,6 +1,7 @@
 // @req SCD-UI-003, SCD-UI-007, SCD-A11Y-001
 import type { CoverageStatus } from "@/lib/api";
 import { STATUS_PRESENTATION } from "@/lib/dashboard/coverage";
+import { formatLabel } from "@/lib/dashboard/format";
 
 export function StatusPill({ status }: { status: CoverageStatus }) {
   const p = STATUS_PRESENTATION[status];
@@ -10,7 +11,7 @@ export function StatusPill({ status }: { status: CoverageStatus }) {
       style={{ backgroundColor: p.tint }}
     >
       <span aria-hidden="true" className="size-1.5 rounded-full" style={{ backgroundColor: p.color }} />
-      {p.label}
+      {formatLabel(status)}
     </span>
   );
 }

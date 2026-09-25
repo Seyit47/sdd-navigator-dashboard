@@ -52,7 +52,7 @@ describe("share", () => {
 describe("STATUS_PRESENTATION", () => {
   it("maps each coverage status to its assessment label and icon", () => {
     expect(
-      Object.entries(STATUS_PRESENTATION).map(([status, p]) => [status, p.assessment, p.icon, p.label]),
+      Object.entries(STATUS_PRESENTATION).map(([status, p]) => [status, p.assessment, p.icon, formatLabel(status)]),
     ).toEqual([
       ["covered", "Fully covered", "✓", "Covered"],
       ["partial", "Needs tests", "◐", "Partial"],
