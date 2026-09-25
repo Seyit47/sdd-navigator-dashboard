@@ -67,6 +67,10 @@ describe("single source of truth", () => {
     expect(script).not.toMatch(/"(?:FR|AR)-[A-Z]+-\d{3}"/);
   });
 
+  it("names the data modes once", () => {
+    expect(filesContaining(/"Live API"|"Mock data"/)).toEqual(["src/lib/api/mode-labels.ts"]);
+  });
+
   it("has one label formatter", () => {
     expect(filesContaining(/export function formatTaskStatus\b/)).toEqual([]);
   });

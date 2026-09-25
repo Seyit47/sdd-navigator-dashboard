@@ -11,9 +11,9 @@ import { spawn } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { DATA_MODE_LABELS } from "../src/lib/api/mode-labels.ts";
 
 const PORT = 3939;
-const MODE_BADGES = { api: "Live API", mock: "Mock data" };
 
 /** The page background (--plane) in each theme, as computed styles report it. */
 function planeColours() {
@@ -174,7 +174,7 @@ async function main() {
   const expectedMode = process.env.EXPECT_DATA_MODE;
   if (expectedMode) {
     const badge = await evaluate(`document.querySelector("header span")?.textContent`);
-    check(`runs in ${expectedMode} mode`, badge === MODE_BADGES[expectedMode], `header shows "${badge}"`);
+    check(`runs in ${expectedMode} mode`, badge === DATA_MODE_LABELS[expectedMode], `header shows "${badge}"`);
   }
   const detailPath = await evaluate(
     `document.querySelector('a[href^="/requirements/"]')?.getAttribute("href")?.split("?")[0]`,
